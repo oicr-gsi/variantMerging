@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>ca.on.oicr.pde.config</groupId>
+        <artifactId>workflows</artifactId>
+        <version>3.1</version>
+    </parent>
+
+    <groupId>ca.on.oicr.pde.workflows</groupId>
+    <artifactId>VariantMerging</artifactId>
+    <version>1.0</version>
+    <packaging>jar</packaging>
+
+    <name>${display-name}</name>
+
+    <properties>
+        <workflow-name>VariantMerging</workflow-name>
+        <picard-version>1.140</picard-version>
+        <workflow-utilities.version>1.7</workflow-utilities.version>
+        <samtools-version>0.1.19</samtools-version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>picard</groupId>
+            <artifactId>picard-tools</artifactId>
+            <version>${picard-version}</version>
+            <type>zip</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>samtools</groupId>
+            <artifactId>samtools</artifactId>
+            <version>${samtools-version}</version>
+            <type>zip</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>ca.on.oicr.pde</groupId>
+            <artifactId>workflow-utilities</artifactId>
+            <version>1.7</version>
+        </dependency>
+        <dependency>
+            <groupId>GenomeAnalysisTK</groupId>
+            <artifactId>GenomeAnalysisTK</artifactId>
+            <version>3.4-46</version>
+            <type>zip</type>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.pyx4j</groupId>
+                <artifactId>maven-junction-plugin</artifactId>
+                <configuration>
+                    <links>
+                        <link>
+                            <dst>${project.build.directory}/Workflow_Bundle_${workflow-directory-name}_${project.version}_SeqWare_${seqware-version}/Workflow_Bundle_${workflow-directory-name}/${project.version}/data</dst>
+                            <src>${basedir}/links</src>
+                        </link>
+                    </links>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

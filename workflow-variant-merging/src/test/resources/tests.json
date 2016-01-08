@@ -1,0 +1,34 @@
+{
+    "defaults": {
+        "description": "BWA workflow test",
+        "metrics_calculate": "calculate.sh",
+        "metrics_compare": "compare.sh",
+        "input_config_dir": "/.mounts/labs/PDE/data/RegressionTests/Bam-Merge-Preprocessing/workflow/input_config/",
+        "output_metrics_dir": "/.mounts/labs/PDE/data/RegressionTests/Bam-Merge-Preprocessing/workflow/expected_output/"
+    },
+    "tests": [
+        {
+            "id": "Test1",
+            "parameters": {
+                "identifier": "PCSI0022",
+                "gatk_base_recalibrator_smp": "8",
+                "input_files": "/.mounts/labs/PDE/data/GATK/PCSI0022C.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022P.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022R.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022X.val.bam"
+            }
+        }, {
+            "id": "Test2",
+            "parameters": {
+                "identifier": "PCSI0022",
+                "samtools_min_map_quality": "60",
+                "gatk_base_recalibrator_smp": "8",
+                "input_files": "/.mounts/labs/PDE/data/GATK/PCSI0022C.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022P.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022R.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022X.val.bam"
+            }
+        } , {
+            "id": "Test3",
+            "parameters": {
+                "identifier": "PCSI0022",
+                "do_bqsr": "false",
+                "input_files": "/.mounts/labs/PDE/data/GATK/PCSI0022C.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022P.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022R.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022X.val.bam"
+            }
+        }
+    ]
+}
