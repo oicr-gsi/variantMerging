@@ -19,6 +19,7 @@
     <properties>
         <workflow-name>VariantMerging</workflow-name>
         <picard-version>1.140</picard-version>
+        <tabix-version>0.2.6</tabix-version>
         <workflow-utilities.version>1.7</workflow-utilities.version>
         <samtools-version>0.1.19</samtools-version>
     </properties>
@@ -39,9 +40,16 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>samtools</groupId>
+            <artifactId>tabix</artifactId>
+            <version>${tabix-version}</version>
+            <type>zip</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>ca.on.oicr.pde</groupId>
             <artifactId>workflow-utilities</artifactId>
-            <version>1.7</version>
+            <version>${workflow-utilities.version}</version>
         </dependency>
         <dependency>
             <groupId>GenomeAnalysisTK</groupId>

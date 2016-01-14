@@ -1,10 +1,10 @@
 {
     "defaults": {
-        "description": "BWA workflow test",
+        "description": "Variant Merging workflow test",
         "metrics_calculate": "calculate.sh",
         "metrics_compare": "compare.sh",
-        "input_config_dir": "/.mounts/labs/PDE/data/RegressionTests/Bam-Merge-Preprocessing/workflow/input_config/",
-        "output_metrics_dir": "/.mounts/labs/PDE/data/RegressionTests/Bam-Merge-Preprocessing/workflow/expected_output/"
+        "input_config_dir": "/.mounts/labs/PDE/data/RegressionTests/Variant-Merging/workflow/input_config/",
+        "output_metrics_dir": "/.mounts/labs/PDE/data/RegressionTests/Variant-Merging/workflow/expected_output/"
     },
     "tests": [
         {
