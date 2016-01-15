@@ -8,26 +8,11 @@
     },
     "tests": [
         {
-            "id": "Test1",
+            "id": "VcfMergingTest",
             "parameters": {
-                "identifier": "PCSI0022",
-                "gatk_base_recalibrator_smp": "8",
-                "input_files": "/.mounts/labs/PDE/data/GATK/PCSI0022C.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022P.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022R.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022X.val.bam"
-            }
-        }, {
-            "id": "Test2",
-            "parameters": {
-                "identifier": "PCSI0022",
-                "samtools_min_map_quality": "60",
-                "gatk_base_recalibrator_smp": "8",
-                "input_files": "/.mounts/labs/PDE/data/GATK/PCSI0022C.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022P.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022R.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022X.val.bam"
-            }
-        } , {
-            "id": "Test3",
-            "parameters": {
-                "identifier": "PCSI0022",
-                "do_bqsr": "false",
-                "input_files": "/.mounts/labs/PDE/data/GATK/PCSI0022C.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022P.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022R.val.bam,/.mounts/labs/PDE/data/GATK/PCSI0022X.val.bam"
+                "identifier": "GSM732316.SRR222176",
+                "input_files": "/.mounts/labs/PDE/data/testdata/genomic/vcf/VcfMerging/GSM732316.SRR222176.sorted.rg.P.final.strelka.snvs.vcf.gz,/.mounts/labs/PDE/data/testdata/genomic/vcf/VcfMerging/GSM732316.SRR222176.sorted.rg.P.final.muTect.snvs.vcf.gz",
+                "input sources": "mutect,strelka"
             }
         }
     ]

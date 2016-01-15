@@ -20,8 +20,8 @@
         <workflow-name>VariantMerging</workflow-name>
         <picard-version>1.140</picard-version>
         <tabix-version>0.2.6</tabix-version>
+        <gatk-version>3.4-46</gatk-version>
         <workflow-utilities.version>1.7</workflow-utilities.version>
-        <samtools-version>0.1.19</samtools-version>
     </properties>
 
     <dependencies>
@@ -29,13 +29,6 @@
             <groupId>picard</groupId>
             <artifactId>picard-tools</artifactId>
             <version>${picard-version}</version>
-            <type>zip</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>samtools</groupId>
-            <artifactId>samtools</artifactId>
-            <version>${samtools-version}</version>
             <type>zip</type>
             <scope>provided</scope>
         </dependency>
@@ -54,26 +47,9 @@
         <dependency>
             <groupId>GenomeAnalysisTK</groupId>
             <artifactId>GenomeAnalysisTK</artifactId>
-            <version>3.4-46</version>
+            <version>${gatk-version}</version>
             <type>zip</type>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>com.pyx4j</groupId>
-                <artifactId>maven-junction-plugin</artifactId>
-                <configuration>
-                    <links>
-                        <link>
-                            <dst>${project.build.directory}/Workflow_Bundle_${workflow-directory-name}_${project.version}_SeqWare_${seqware-version}/Workflow_Bundle_${workflow-directory-name}/${project.version}/data</dst>
-                            <src>${basedir}/links</src>
-                        </link>
-                    </links>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

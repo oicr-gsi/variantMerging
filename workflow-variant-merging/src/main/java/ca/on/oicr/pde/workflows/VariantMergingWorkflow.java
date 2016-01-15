@@ -1,12 +1,38 @@
+/**
+ * Copyright (C) 2016 Ontario Institute of Cancer Research
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contact us:
+ *
+ * Ontario Institute for Cancer Research
+ * MaRS Centre, West Tower
+ * 661 University Avenue, Suite 510
+ * Toronto, Ontario, Canada M5G 0A3
+ * Phone: 416-977-7599
+ * Toll-free: 1-866-678-6427
+ * www.oicr.on.ca
+ *
+ */
+
 package ca.on.oicr.pde.workflows;
 
 import ca.on.oicr.pde.utilities.workflows.SemanticWorkflow;
-import ca.on.oicr.pde.utilities.workflows.jobfactory.PicardTools;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +61,6 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     private String picard_dir;
     private String gatk_dir;
     private String identifier;
-    private String alignerName;
     private Workflow wf;
     private String tabixVersion;
     private final static String VCF_GZIPPED_METATYPE = "application/vcf-4-gzip";
@@ -51,12 +76,11 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     private String queue;
     private String binDir;
 
-    private String bundledJRE;
     //Ontology-related variables
     private static final String EDAM = "EDAM";
     private static final Map<String, Set<String>> cvTerms;
 
-    //TODO modify this
+    //Our CV terms
     static {
         cvTerms = new HashMap<String, Set<String>>();
         cvTerms.put(EDAM, new HashSet<String>(
@@ -64,35 +88,19 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
                                         "Variant Calling", "Sequence variation analysis")));
     }
 
-    /**
-     * Here we need to register all of our CV terms for attaching to result
-     * files (Formats, Data, Processes)
-     *
-     * @return myTerms
-     */
-    @Override
-    protected Map<String, Set<String>> getTerms() {
-        Map<String, Set<String>> myTerms = new HashMap<String, Set<String>>();
-        myTerms.putAll(cvTerms);
-        return myTerms;
-    }
 
     /**
      * Launched from setupDirectory();
      */
     private void VariantMergingWorkflow() {
         identifier = getProperty("identifier");
-        java = getProperty("java");
-        dataDir = "data";
-        tmpDir = getProperty("tmp_dir");
-        manualOutput = Boolean.parseBoolean(getProperty("manual_output"));
-
-        //Picard
-        picard_dir = getProperty("picard_dir");
-        wf = this.getWorkflow();
-        binDir = this.getWorkflowBaseDir() + "/bin/";
-
-        alignerName = getOptionalProperty("aligner_name", "");
+        java    = getProperty("java");
+        dataDir = getOptionalProperty("data_dir", "data");
+        tmpDir  = getOptionalProperty("tmp_dir",  "temp");
+        binDir  = this.getWorkflowBaseDir() + "/bin/";
+        String manual_out = getOptionalProperty("manual_output", "false");
+        manualOutput = Boolean.parseBoolean(manual_out);
+        wf      = this.getWorkflow();
     }
 
     @Override
@@ -104,9 +112,14 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         this.genomeDictionary = getOptionalProperty("ref_dictionary", derivedDictionary);
 
         //GATK
-        this.queue = getOptionalProperty("queue", "");
+        this.queue    = getOptionalProperty("queue", "");
         this.gatk_dir = getOptionalProperty("gatk_dir", binDir);
+        if (!gatk_dir.endsWith("/")) {gatk_dir += "/";}
 
+        //Picard
+        picard_dir = getOptionalProperty("picard_dir", binDir);
+        if (!picard_dir.endsWith("/")) {gatk_dir += "/";}
+        
         if (getProperty("tabix_version") == null) {
             Logger.getLogger(VariantMergingWorkflow.class.getName()).log(Level.SEVERE, "tabix_version is not set, we need it to call tabix correctly");
             return (null);
@@ -114,11 +127,11 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
             this.tabixVersion = getProperty("tabix_version");
         }
 
-        if (getProperty("gatk_java") == null) {
-            Logger.getLogger(VariantMergingWorkflow.class.getName()).log(Level.SEVERE, "gatk_java is not set, we need it to run GATK since it requires 1.7 java and we cannot rely on the defaul");
+        if (getProperty("java") == null) {
+            Logger.getLogger(VariantMergingWorkflow.class.getName()).log(Level.SEVERE, "java is not set, we need it to run GATK since it requires 1.7 java and we cannot rely on the defaul");
             return (null);
         } else {
-            this.java = getProperty("gatk_java");
+            this.java = getProperty("java");
         }
         List<String> inputFilesList = Arrays.asList(StringUtils.split(getProperty("input_files"), ","));
         Set<String> inputFilesSet = new HashSet<>(inputFilesList);
@@ -155,7 +168,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
             this.inputVcfFiles = provisionInputFiles("input_files");
             this.inputBasenames = new ArrayList<String>(this.inputVcfFiles.length);
             for (int i = 0; i < this.inputVcfFiles.length; i++) {
-                this.inputBasenames.add(i, this.makeBasename(this.inputBasenames.get(i)));
+                this.inputBasenames.add(i, this.makeBasename(this.inputVcfFiles[i].getProvisionedPath()));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -179,15 +192,14 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         /**
          * ==== Vet AND Sort vcf files here ====
          */
-        for (int i = 0; i < this.inputBasenames.size(); i++) {
+        for (int i = 0; i < this.sources.size(); i++) {
             // vet the vcfs
             operationsOnFile = ".vetted.";
 
             inputFile = this.inputVcfFiles[i].getProvisionedPath();
             outputFile = this.inputBasenames.get(i) + operationsOnFile;
 
-            Job vetVcf = this.vetVcf(inputFile, this.dataDir + outputFile + ".vcf");
-            vetVcf.addFile(this.inputVcfFiles[i]);
+            Job vetVcf = this.vetVcf(inputFile, this.dataDir + outputFile + "vcf");
 
             // update seq dictionary / sort
             operationsOnFile += "sorted.";
@@ -195,8 +207,8 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
             inputFile = outputFile;
             outputFile = this.inputBasenames.get(i) + operationsOnFile;
 
-            Job sortVcf = this.sortVcf(this.dataDir + inputFile + ".vcf", this.dataDir + outputFile + ".vcf");
-            inputsToCombine.put(this.sources.get(i), this.dataDir + outputFile + ".vcf");
+            Job sortVcf = this.sortVcf(this.dataDir + inputFile + "vcf", this.dataDir + outputFile + "vcf");
+            inputsToCombine.put(this.sources.get(i), this.dataDir + outputFile + "vcf");
             sortVcf.addParent(vetVcf);
             upstreamJobs.add(sortVcf);
         }
@@ -208,10 +220,10 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
 
             // Combine based on priority
             String operationsOnMergedFile = operationsOnFile + "combined.";
-            String priorityOrder = p == 0 ? this.sources.get(0) + "." + this.sources.get(1)
-                                          : this.sources.get(1) + "." + this.sources.get(0);
+            String priorityOrder = p == 0 ? this.sources.get(0) + "." + this.sources.get(1) + "."
+                                          : this.sources.get(1) + "." + this.sources.get(0) + ".";
             outputFile = identifier + operationsOnMergedFile + priorityOrder;
-            Job combineVcfs = this.combineVcf(inputsToCombine, this.dataDir + outputFile + ".vcf", 0);
+            Job combineVcfs = this.combineVcf(inputsToCombine, this.dataDir + outputFile + "vcf", p);
 
             for (Job j : upstreamJobs) {
                 combineVcfs.addParent(j);
@@ -221,26 +233,22 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
             operationsOnMergedFile += "intersect.";
             inputFile = outputFile;
             outputFile = identifier + operationsOnMergedFile + priorityOrder;
-            Job subsetVcf = this.subsetVcf(this.dataDir + inputFile + ".vcf", this.dataDir + outputFile + ".vcf");
+            Job subsetVcf = this.subsetVcf(this.dataDir + inputFile + "vcf", this.dataDir + outputFile + "vcf");
 
             subsetVcf.addParent(combineVcfs);
             
             //post-process vcf (bgzip and index)
-            Job postprocessVcf = this.prepareVcf(this.dataDir + outputFile + ".vcf");
+            Job postprocessVcf = this.prepareVcf(this.dataDir + outputFile + "vcf");
             postprocessVcf.addParent(subsetVcf);
             
             // Annotate and provision final vcf and its index
-            SqwFile finalVcf    = this.createOutputFile(this.dataDir + outputFile + ".vcf.gz", VCF_GZIPPED_METATYPE, manualOutput);
-            SqwFile finalVcfTbi = this.createOutputFile(this.dataDir + outputFile + ".vcf.gz.tbi", TBI_INDEX_METATYPE, manualOutput);
-            
-            if (!this.alignerName.isEmpty()) {
-                finalVcf.getAnnotations().put("aligner", this.alignerName);
-                finalVcfTbi.getAnnotations().put("aligner", this.alignerName);
-            }
-            
-            this.attachCVterms(finalVcf, EDAM, "VCF,SNP,Variant Calling,Sequence variation analysis");
+            SqwFile finalVcf    = this.createOutputFile(this.dataDir + outputFile + "vcf.gz", VCF_GZIPPED_METATYPE, manualOutput);
+            SqwFile finalVcfTbi = this.createOutputFile(this.dataDir + outputFile + "vcf.gz.tbi", TBI_INDEX_METATYPE, manualOutput);
+                       
+            this.attachCVterms(finalVcf,    EDAM, "VCF,SNP,Variant Calling,Sequence variation analysis");
             this.attachCVterms(finalVcfTbi, EDAM, "tabix,Sequence variation analysis");
             
+            //We produce total of four files, vcfs and their indices
             postprocessVcf.addFile(finalVcf);                     
             postprocessVcf.addFile(finalVcfTbi);
             
@@ -249,7 +257,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
 
     //=======================Jobs as functions===================
     /**
-     *
+     * Vet vcf files - remove tool-specific info from the headers, remove non-canonical contigs
      * @param inputFile
      * @param outputFile
      * @return
@@ -270,7 +278,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     }
 
     /**
-     *
+     * Sort vcf files using a specified list of contigs
      * @param inputFile
      * @param outputFile
      * @return
@@ -280,9 +288,8 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         Job jobUpdate = wf.createBashJob("update_dictionary");
         String tempFile = inputFile + ".updated";
 
-        jobUpdate.setCommand(getWorkflowBaseDir() + "/bin/" + this.bundledJRE + "/bin/java"
-                + " -Xmx" + this.getProperty("picard_memory") + "M"
-                + " -jar " + this.picard_dir + "/picard.jar UpdateVcfSequenceDictionary "
+        jobUpdate.setCommand(this.java + " -Xmx" + this.getProperty("picard_memory") + "M"
+                + " -jar " + this.picard_dir + "picard.jar UpdateVcfSequenceDictionary "
                 + " I=" + inputFile
                 + " O=" + tempFile
                 + " SEQUENCE_DICTIONARY=" + this.genomeDictionary
@@ -293,9 +300,8 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
 
         Job jobSort = wf.createBashJob("sort_variants");
 
-        jobSort.setCommand(getWorkflowBaseDir() + "/bin/" + this.bundledJRE + "/bin/java"
-                + " -Xmx" + this.getProperty("picard_memory") + "M"
-                + " -jar " + this.picard_dir + "/picard.jar SortVcf"
+        jobSort.setCommand(this.java + " -Xmx" + this.getProperty("picard_memory") + "M"
+                + " -jar " + this.picard_dir + "picard.jar SortVcf"
                 + " -R " + this.genomeFile
                 + " I=" + tempFile
                 + " O=" + outputFile
@@ -312,8 +318,8 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     }
 
     /**
-     * combine the vcf files into one according to priorities
-     *
+     * Combine the vcf files into one according to priorities
+     * 
      * @param inputs
      * @param outputFile
      * @param priorityIndex
@@ -324,9 +330,9 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         StringBuilder gatkCommand = new StringBuilder();
         int otherIndex = priorityIndex == 0 ? 1 : 0;
 
-        gatkCommand.append(java)
+        gatkCommand.append(this.java)
                 .append(" -Xmx4g -Djava.io.tmpdir=").append(this.tmpDir)
-                .append(" -jar ").append(this.gatk_dir).append("/GenomeAnalysisTK.jar")
+                .append(" -jar ").append(this.gatk_dir).append("GenomeAnalysisTK.jar")
                 .append(" -T CombineVariants ")
                 .append(" --variant:").append(this.sources.get(priorityIndex)).append(" ").append(inputs.get(this.sources.get(priorityIndex)))
                 .append(" --variant:").append(this.sources.get(otherIndex)).append(" ").append(inputs.get(this.sources.get(otherIndex)))
@@ -356,9 +362,9 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         Job jobGATK = this.wf.createBashJob("subset_calls");
         StringBuilder gatkCommand = new StringBuilder();
 
-        gatkCommand.append(java)
+        gatkCommand.append(this.java)
                 .append(" -Xmx4g -Djava.io.tmpdir=").append(this.tmpDir)
-                .append(" -jar ").append(this.gatk_dir).append("/GenomeAnalysisTK.jar")
+                .append(" -jar ").append(this.gatk_dir).append("GenomeAnalysisTK.jar")
                 .append(" -T SelectVariants")
                 .append(" -R ").append(this.genomeFile)
                 .append(" -V ").append(inputFile)
@@ -404,62 +410,20 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
      * @return
      */
     private String makeBasename(final String name) {
-        String basename = name.substring(name.lastIndexOf("/") + 1, name.lastIndexOf(".bam"));
-        if (basename.contains(".")) {
-            basename = basename.substring(0, basename.indexOf("."));
-        }
-        return basename;
+        return name.substring(name.lastIndexOf("/") + 1, name.lastIndexOf(".vcf"));
     }
 
-    class InputContainer {
-
-        private String vcfPath;
-        private String source;
-
-        public InputContainer() {
-            this.vcfPath = null;
-            this.source = null;
-        }
-
-        public InputContainer(String vcfP, String src) {
-            if (!vcfP.contains("vcf.gz")) {
-                Log.warn("Files with unconventional extension will be skipped!");
-                this.vcfPath = null;
-            } else {
-                this.vcfPath = vcfP;
-                this.source = src;
-            }
-        }
-
-        public void registerVcf(String vcfP, String src) {
-            if (!vcfP.contains("vcf.gz")) {
-                Log.warn("Files with unconventional extension will be skipped!");
-                return;
-            }
-            this.vcfPath = vcfP;
-            this.source = src;
-        }
-
-        /**
-         * @return hasVcf
-         */
-        public boolean hasVcf() {
-            return null != this.vcfPath;
-        }
-
-        /**
-         * @return vcfPath
-         */
-        public String getVcfPath() {
-            return this.vcfPath;
-        }
-
-        /**
-         * @return source
-         */
-        public String getSource() {
-            return this.source;
-        }
-
+    /**
+     * Here we need to register all of our CV terms for attaching to result
+     * files (Formats, Data, Processes)
+     *
+     * @return myTerms
+     */
+    @Override
+    protected Map<String, Set<String>> getTerms() {
+        Map<String, Set<String>> myTerms = new HashMap<String, Set<String>>();
+        myTerms.putAll(cvTerms);
+        return myTerms;
     }
+
 }
