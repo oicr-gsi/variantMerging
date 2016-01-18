@@ -69,6 +69,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     private SqwFile[] inputVcfFiles;
     private ArrayList<String> inputBasenames;
     private ArrayList<String> sources;
+    private boolean collapse;
 
     //References
     private String genomeFile;
@@ -116,6 +117,10 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         this.gatk_dir = getOptionalProperty("gatk_dir", binDir);
         if (!gatk_dir.endsWith("/")) {gatk_dir += "/";}
 
+        //Collapse 4-column final vcf into 2-column vcf
+        String collapseColumns = getOptionalProperty("collapse_vcf", "true");
+        this.collapse = Boolean.valueOf(collapseColumns);
+        
         //Picard
         picard_dir = getOptionalProperty("picard_dir", binDir);
         if (!picard_dir.endsWith("/")) {gatk_dir += "/";}
@@ -192,14 +197,20 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         /**
          * ==== Vet AND Sort vcf files here ====
          */
+        StringBuilder infiles = new StringBuilder();
+        for (int in = 0; in < this.inputVcfFiles.length; in++) {
+            if (in > 0) {infiles.append(",");}
+            infiles.append(this.inputVcfFiles[in].getProvisionedPath());
+        }
+        
         for (int i = 0; i < this.sources.size(); i++) {
             // vet the vcfs
             operationsOnFile = ".vetted.";
-
+            // TODO 
             inputFile = this.inputVcfFiles[i].getProvisionedPath();
             outputFile = this.inputBasenames.get(i) + operationsOnFile;
 
-            Job vetVcf = this.vetVcf(inputFile, this.dataDir + outputFile + "vcf");
+            Job vetVcf = this.vetVcf(inputFile, this.dataDir + outputFile + "vcf", infiles.toString(), i);
 
             // update seq dictionary / sort
             operationsOnFile += "sorted.";
@@ -207,9 +218,8 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
             inputFile = outputFile;
             outputFile = this.inputBasenames.get(i) + operationsOnFile;
 
-            Job sortVcf = this.sortVcf(this.dataDir + inputFile + "vcf", this.dataDir + outputFile + "vcf");
+            Job sortVcf = this.sortVcf(this.dataDir + inputFile + "vcf", this.dataDir + outputFile + "vcf", vetVcf);
             inputsToCombine.put(this.sources.get(i), this.dataDir + outputFile + "vcf");
-            sortVcf.addParent(vetVcf);
             upstreamJobs.add(sortVcf);
         }
 
@@ -228,6 +238,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
             for (Job j : upstreamJobs) {
                 combineVcfs.addParent(j);
             }
+            // TODO : make optional the ability to provision
 
             // produce intersect (for both overlaps)
             operationsOnMergedFile += "intersect.";
@@ -258,15 +269,19 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     //=======================Jobs as functions===================
     /**
      * Vet vcf files - remove tool-specific info from the headers, remove non-canonical contigs
+     * TODO need to disambiguate format fields
      * @param inputFile
      * @param outputFile
      * @return
      */
-    protected Job vetVcf(String inputFile, String outputFile) {
+    protected Job vetVcf(String inputFile, String outputFile, String commaSeparatedInputs, int index) {
+        
         Job jobVcfPrep = wf.createBashJob("preprocess_vcf");
-        jobVcfPrep.setCommand(getWorkflowBaseDir() + "/dependencies/vcf_vetting.pl "
-                + inputFile + " > "
-                + outputFile);
+        jobVcfPrep.setCommand(getWorkflowBaseDir() + "/dependencies/vcf_vetting.pl"
+                + " --input "  + inputFile
+                + " --infiles "    + commaSeparatedInputs
+                + " --index "  + (index + 1) // index comes zero-based, convert to 1-based
+                + " --output " + outputFile);
 
         jobVcfPrep.setMaxMemory("4000");
 
@@ -283,10 +298,10 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
      * @param outputFile
      * @return
      */
-    protected Job sortVcf(String inputFile, String outputFile) {
+    protected Job sortVcf(String inputFile, String outputFile, Job parent) {
 
         Job jobUpdate = wf.createBashJob("update_dictionary");
-        String tempFile = inputFile + ".updated";
+        String tempFile = inputFile.replace(".vcf", ".updated.vcf");
 
         jobUpdate.setCommand(this.java + " -Xmx" + this.getProperty("picard_memory") + "M"
                 + " -jar " + this.picard_dir + "picard.jar UpdateVcfSequenceDictionary "
@@ -297,12 +312,13 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
 
         Integer mbRam = Integer.valueOf(this.getProperty("picard_memory"));
         jobUpdate.setMaxMemory(Integer.toString(mbRam + 2000));
+        jobUpdate.addParent(parent);
 
         Job jobSort = wf.createBashJob("sort_variants");
 
         jobSort.setCommand(this.java + " -Xmx" + this.getProperty("picard_memory") + "M"
                 + " -jar " + this.picard_dir + "picard.jar SortVcf"
-                + " -R " + this.genomeFile
+                + " R=" + this.genomeFile
                 + " I=" + tempFile
                 + " O=" + outputFile
                 + " CREATE_INDEX=false");
@@ -338,8 +354,8 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
                 .append(" --variant:").append(this.sources.get(otherIndex)).append(" ").append(inputs.get(this.sources.get(otherIndex)))
                 .append(" -R ").append(this.genomeFile)
                 .append(" -o ").append(outputFile)
-                .append(" -genotypeMergeOptions PRIORITIZE")
-                .append(" -priority ").append(this.sources.get(priorityIndex)).append(",").append(this.sources.get(otherIndex));
+                .append(" -genotypeMergeOptions UNIQUIFY"); // RIORITIZE")
+                //.append(" -priority ").append(this.sources.get(priorityIndex)).append(",").append(this.sources.get(otherIndex));
 
         jobGATK.setCommand(gatkCommand.toString());
         jobGATK.setMaxMemory("6000");
@@ -390,10 +406,16 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     protected Job prepareVcf(String inputFile) {
 
         Job jobVcfPrep = wf.createBashJob("prepare_vcf");
-        jobVcfPrep.setCommand(getWorkflowBaseDir() + "/dependencies/postprocess_vcf.pl "
-                + "--input=" + inputFile + " "
-                + "--tabix=" + getWorkflowBaseDir() + "/bin/tabix-" + this.tabixVersion + "/tabix "
-                + "--bgzip=" + getWorkflowBaseDir() + "/bin/tabix-" + this.tabixVersion + "/bgzip");
+        //jobVcfPrep.setCommand
+        StringBuilder postprocessCommand = new StringBuilder();
+        postprocessCommand.append(getWorkflowBaseDir())
+                .append("/dependencies/postprocess_vcf.pl")
+                .append(" --input ").append(inputFile)
+                .append(" --tabix ").append(getWorkflowBaseDir()).append("/bin/tabix-").append(this.tabixVersion).append("/tabix")
+                .append(" --bgzip ").append(getWorkflowBaseDir()).append("/bin/tabix-").append(this.tabixVersion).append("/bgzip");
+        if (this.collapse) {
+            postprocessCommand.append(" --collapse ");
+        }
         jobVcfPrep.setMaxMemory("2000");
 
         if (!this.queue.isEmpty()) {
