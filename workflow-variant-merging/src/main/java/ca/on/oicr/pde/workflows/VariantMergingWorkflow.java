@@ -1,31 +1,26 @@
 /**
  * Copyright (C) 2016 Ontario Institute of Cancer Research
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * This program is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option) any later
+ * version.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with
+ * this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * Contact us:
  *
- * Ontario Institute for Cancer Research
- * MaRS Centre, West Tower
- * 661 University Avenue, Suite 510
- * Toronto, Ontario, Canada M5G 0A3
- * Phone: 416-977-7599
- * Toll-free: 1-866-678-6427
- * www.oicr.on.ca
+ * Ontario Institute for Cancer Research MaRS Centre, West Tower 661 University
+ * Avenue, Suite 510 Toronto, Ontario, Canada M5G 0A3 Phone: 416-977-7599
+ * Toll-free: 1-866-678-6427 www.oicr.on.ca
  *
  */
-
 package ca.on.oicr.pde.workflows;
 
 import ca.on.oicr.pde.utilities.workflows.SemanticWorkflow;
@@ -64,12 +59,13 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     private Workflow wf;
     private String tabixVersion;
     private final static String VCF_GZIPPED_METATYPE = "application/vcf-4-gzip";
-    private final static String TBI_INDEX_METATYPE   = "application/tbi";
+    private final static String TBI_INDEX_METATYPE = "application/tbi";
     private boolean manualOutput = false;
     private SqwFile[] inputVcfFiles;
     private ArrayList<String> inputBasenames;
     private ArrayList<String> sources;
-    private boolean collapse;
+    private boolean doCollapse;
+    private boolean doIntersect;
 
     //References
     private String genomeFile;
@@ -85,23 +81,22 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     static {
         cvTerms = new HashMap<String, Set<String>>();
         cvTerms.put(EDAM, new HashSet<String>(
-                          Arrays.asList("VCF", "SNP", "tabix",
-                                        "Variant Calling", "Sequence variation analysis")));
+                Arrays.asList("VCF", "SNP", "tabix",
+                              "Variant Calling", "Sequence variation analysis")));
     }
-
 
     /**
      * Launched from setupDirectory();
      */
     private void VariantMergingWorkflow() {
         identifier = getProperty("identifier");
-        java    = getProperty("java");
+        java = getProperty("java");
         dataDir = getOptionalProperty("data_dir", "data");
-        tmpDir  = getOptionalProperty("tmp_dir",  "temp");
-        binDir  = this.getWorkflowBaseDir() + "/bin/";
+        tmpDir = getOptionalProperty("tmp_dir", "temp");
+        binDir = this.getWorkflowBaseDir() + "/bin/";
         String manual_out = getOptionalProperty("manual_output", "false");
         manualOutput = Boolean.parseBoolean(manual_out);
-        wf      = this.getWorkflow();
+        wf = this.getWorkflow();
     }
 
     @Override
@@ -113,18 +108,26 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         this.genomeDictionary = getOptionalProperty("ref_dictionary", derivedDictionary);
 
         //GATK
-        this.queue    = getOptionalProperty("queue", "");
+        this.queue = getOptionalProperty("queue", "");
         this.gatk_dir = getOptionalProperty("gatk_dir", binDir);
-        if (!gatk_dir.endsWith("/")) {gatk_dir += "/";}
+        if (!gatk_dir.endsWith("/")) {
+            gatk_dir += "/";
+        }
 
         //Collapse 4-column final vcf into 2-column vcf
         String collapseColumns = getOptionalProperty("collapse_vcf", "true");
-        this.collapse = Boolean.valueOf(collapseColumns);
-        
+        this.doCollapse = Boolean.valueOf(collapseColumns);
+
+        //Optional Intersect
+        String intersectVariants = getOptionalProperty("do_intersect", "false");
+        this.doIntersect = Boolean.valueOf(intersectVariants);
+
         //Picard
         picard_dir = getOptionalProperty("picard_dir", binDir);
-        if (!picard_dir.endsWith("/")) {gatk_dir += "/";}
-        
+        if (!picard_dir.endsWith("/")) {
+            gatk_dir += "/";
+        }
+
         if (getProperty("tabix_version") == null) {
             Logger.getLogger(VariantMergingWorkflow.class.getName()).log(Level.SEVERE, "tabix_version is not set, we need it to call tabix correctly");
             return (null);
@@ -199,18 +202,19 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
          */
         StringBuilder infiles = new StringBuilder();
         for (int in = 0; in < this.inputVcfFiles.length; in++) {
-            if (in > 0) {infiles.append(",");}
+            if (in > 0) {
+                infiles.append(",");
+            }
             infiles.append(this.inputVcfFiles[in].getProvisionedPath());
         }
-        
+
         for (int i = 0; i < this.sources.size(); i++) {
             // vet the vcfs
             operationsOnFile = ".vetted.";
-            // TODO 
             inputFile = this.inputVcfFiles[i].getProvisionedPath();
             outputFile = this.inputBasenames.get(i) + operationsOnFile;
 
-            Job vetVcf = this.vetVcf(inputFile, this.dataDir + outputFile + "vcf", infiles.toString(), i);
+            Job vetVcf = this.vetVcf(inputFile, this.dataDir + outputFile + "vcf", infiles.toString(), i, this.sources.get(i));
 
             // update seq dictionary / sort
             operationsOnFile += "sorted.";
@@ -226,61 +230,61 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         /**
          * ==== Combine and Subset (extract intersect) here
          */
-        for (int p = 0; p < this.sources.size(); p++) {
+        String operationsOnMergedFile = operationsOnFile + "combined.";
 
-            // Combine based on priority
-            String operationsOnMergedFile = operationsOnFile + "combined.";
-            String priorityOrder = p == 0 ? this.sources.get(0) + "." + this.sources.get(1) + "."
-                                          : this.sources.get(1) + "." + this.sources.get(0) + ".";
-            outputFile = identifier + operationsOnMergedFile + priorityOrder;
-            Job combineVcfs = this.combineVcf(inputsToCombine, this.dataDir + outputFile + "vcf", p);
+        outputFile = identifier + operationsOnMergedFile;
+        Job combineVcfs = this.combineVcf(inputsToCombine, this.dataDir + outputFile + "vcf");
 
-            for (Job j : upstreamJobs) {
-                combineVcfs.addParent(j);
-            }
-            // TODO : make optional the ability to provision
+        for (Job j : upstreamJobs) {
+            combineVcfs.addParent(j);
+        }
 
-            // produce intersect (for both overlaps)
+        Job upstreamJob = combineVcfs;
+        // produce intersect
+        if (this.doIntersect) {
             operationsOnMergedFile += "intersect.";
             inputFile = outputFile;
-            outputFile = identifier + operationsOnMergedFile + priorityOrder;
+            outputFile = identifier + operationsOnMergedFile;
             Job subsetVcf = this.subsetVcf(this.dataDir + inputFile + "vcf", this.dataDir + outputFile + "vcf");
 
-            subsetVcf.addParent(combineVcfs);
-            
-            //post-process vcf (bgzip and index)
-            Job postprocessVcf = this.prepareVcf(this.dataDir + outputFile + "vcf");
-            postprocessVcf.addParent(subsetVcf);
-            
-            // Annotate and provision final vcf and its index
-            SqwFile finalVcf    = this.createOutputFile(this.dataDir + outputFile + "vcf.gz", VCF_GZIPPED_METATYPE, manualOutput);
-            SqwFile finalVcfTbi = this.createOutputFile(this.dataDir + outputFile + "vcf.gz.tbi", TBI_INDEX_METATYPE, manualOutput);
-                       
-            this.attachCVterms(finalVcf,    EDAM, "VCF,SNP,Variant Calling,Sequence variation analysis");
-            this.attachCVterms(finalVcfTbi, EDAM, "tabix,Sequence variation analysis");
-            
-            //We produce total of four files, vcfs and their indices
-            postprocessVcf.addFile(finalVcf);                     
-            postprocessVcf.addFile(finalVcfTbi);
-            
+            subsetVcf.addParent(upstreamJob);
+            upstreamJob = subsetVcf;
         }
+
+        // post-process vcf (bgzip and index)
+        Job postprocessVcf = this.prepareVcf(this.dataDir + outputFile + "vcf");
+        postprocessVcf.addParent(upstreamJob);
+
+        // Annotate and provision final vcf and its index
+        SqwFile finalVcf = this.createOutputFile(this.dataDir + outputFile + "vcf.gz", VCF_GZIPPED_METATYPE, manualOutput);
+        SqwFile finalVcfTbi = this.createOutputFile(this.dataDir + outputFile + "vcf.gz.tbi", TBI_INDEX_METATYPE, manualOutput);
+
+        this.attachCVterms(finalVcf,    EDAM, "VCF,SNP,Variant Calling,Sequence variation analysis");
+        this.attachCVterms(finalVcfTbi, EDAM, "tabix,Sequence variation analysis");
+
+        // We produce total of two files, vcf and the index
+        postprocessVcf.addFile(finalVcf);
+        postprocessVcf.addFile(finalVcfTbi);
+
     }
 
     //=======================Jobs as functions===================
     /**
-     * Vet vcf files - remove tool-specific info from the headers, remove non-canonical contigs
-     * TODO need to disambiguate format fields
+     * Vet vcf files - remove tool-specific info from the headers, remove
+     * non-canonical contigs TODO need to disambiguate format fields
+     *
      * @param inputFile
      * @param outputFile
      * @return
      */
-    protected Job vetVcf(String inputFile, String outputFile, String commaSeparatedInputs, int index) {
-        
+    protected Job vetVcf(String inputFile, String outputFile, String commaSeparatedInputs, int index, String source) {
+
         Job jobVcfPrep = wf.createBashJob("preprocess_vcf");
         jobVcfPrep.setCommand(getWorkflowBaseDir() + "/dependencies/vcf_vetting.pl"
-                + " --input "  + inputFile
-                + " --infiles "    + commaSeparatedInputs
-                + " --index "  + (index + 1) // index comes zero-based, convert to 1-based
+                + " --input " + inputFile
+                + " --source " + source
+                + " --infiles " + commaSeparatedInputs
+                + " --index " + (index + 1) // index comes zero-based, convert to 1-based
                 + " --output " + outputFile);
 
         jobVcfPrep.setMaxMemory("4000");
@@ -294,6 +298,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
 
     /**
      * Sort vcf files using a specified list of contigs
+     *
      * @param inputFile
      * @param outputFile
      * @return
@@ -335,27 +340,26 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
 
     /**
      * Combine the vcf files into one according to priorities
-     * 
+     *
      * @param inputs
      * @param outputFile
      * @param priorityIndex
      * @return
      */
-    protected Job combineVcf(Map<String, String> inputs, String outputFile, int priorityIndex) {
+    //TODO remove priorityIndex
+    protected Job combineVcf(Map<String, String> inputs, String outputFile) {
         Job jobGATK = this.wf.createBashJob("combine_calls");
         StringBuilder gatkCommand = new StringBuilder();
-        int otherIndex = priorityIndex == 0 ? 1 : 0;
 
         gatkCommand.append(this.java)
                 .append(" -Xmx4g -Djava.io.tmpdir=").append(this.tmpDir)
                 .append(" -jar ").append(this.gatk_dir).append("GenomeAnalysisTK.jar")
                 .append(" -T CombineVariants ")
-                .append(" --variant:").append(this.sources.get(priorityIndex)).append(" ").append(inputs.get(this.sources.get(priorityIndex)))
-                .append(" --variant:").append(this.sources.get(otherIndex)).append(" ").append(inputs.get(this.sources.get(otherIndex)))
+                .append(" --variant:").append(this.sources.get(0)).append(" ").append(inputs.get(this.sources.get(0)))
+                .append(" --variant:").append(this.sources.get(1)).append(" ").append(inputs.get(this.sources.get(1)))
                 .append(" -R ").append(this.genomeFile)
                 .append(" -o ").append(outputFile)
-                .append(" -genotypeMergeOptions UNIQUIFY"); // RIORITIZE")
-                //.append(" -priority ").append(this.sources.get(priorityIndex)).append(",").append(this.sources.get(otherIndex));
+                .append(" -genotypeMergeOptions UNIQUIFY");
 
         jobGATK.setCommand(gatkCommand.toString());
         jobGATK.setMaxMemory("6000");
@@ -370,10 +374,11 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     /**
      * Produce intersect subset of the calls
      *
-     * @param inputFile 
+     * @param inputFile
      * @param outputFile
      * @return
      */
+    //TODO this maybe optional
     protected Job subsetVcf(String inputFile, String outputFile) {
         Job jobGATK = this.wf.createBashJob("subset_calls");
         StringBuilder gatkCommand = new StringBuilder();
@@ -413,7 +418,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
                 .append(" --input ").append(inputFile)
                 .append(" --tabix ").append(getWorkflowBaseDir()).append("/bin/tabix-").append(this.tabixVersion).append("/tabix")
                 .append(" --bgzip ").append(getWorkflowBaseDir()).append("/bin/tabix-").append(this.tabixVersion).append("/bgzip");
-        if (this.collapse) {
+        if (this.doCollapse) {
             postprocessCommand.append(" --collapse ");
         }
         jobVcfPrep.setMaxMemory("2000");
