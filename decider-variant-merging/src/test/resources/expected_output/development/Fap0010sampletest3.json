@@ -1,0 +1,135 @@
+{
+  "workflowRunCount" : 2,
+  "studies" : [ "FAP" ],
+  "sequencerRuns" : [ "150508_D00343_0086_BC6U94ANXX", "150512_D00355_0085_AC710WANXX" ],
+  "lanes" : [ "150508_D00343_0086_BC6U94ANXX_lane_4", "150508_D00343_0086_BC6U94ANXX_lane_5", "150508_D00343_0086_BC6U94ANXX_lane_6", "150512_D00355_0085_AC710WANXX_lane_2", "150512_D00355_0085_AC710WANXX_lane_3" ],
+  "samples" : [ "FAP_0010_Li_P_PE_306_EX", "FAP_0010_Li_P_PE_359_EX", "FAP_0010_Li_R_PE_356_EX" ],
+  "workflows" : [ "GATK3", "MutectStrelka" ],
+  "processingAlgorithms" : [ "ProvisionFiles" ],
+  "fileMetaTypes" : [ "application/vcf-4-gzip" ],
+  "maxInputFiles" : 1,
+  "minInputFiles" : 1,
+  "totalInputFiles" : 2,
+  "workflowRuns" : [ {
+    "workflowIni" : {
+      "collapse_vcf" : "true",
+      "data_dir" : "data",
+      "do_intersect" : "false",
+      "external_name" : "NA",
+      "gatk_dbsnp_vcf" : "/.mounts/labs/PDE/data/MutectStrelka/dbSNP/dbsnp_138.hg19.leftAligned.vcf.gz",
+      "gatk_dir" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.0/bin/GenomeAnalysisTK-3.4-46/",
+      "group_id" : "NA",
+      "group_id_description" : "NA",
+      "identifier" : "FAP_0010_Li_P_PE_306_EX",
+      "input_sources" : "strelka-1.0.13,mutect-1.1.4",
+      "java" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.0/bin/jre1.7.0_51/bin/java",
+      "manual_output" : "false",
+      "metadata" : "metadata",
+      "output_dir" : "seqware-results",
+      "picard_dir" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.0/bin/picard-tools-1.140/",
+      "picard_memory" : "5000",
+      "queue" : "",
+      "ref_fasta" : "/.mounts/labs/PDE/data/gatkAnnotationResources/hg19_random.fa",
+      "tabix_version" : "0.2.6",
+      "tmp_dir" : "tmp"
+    },
+    "files" : [ {
+      "studyTitle" : [ "FAP" ],
+      "studyAttributes" : {
+        "study.geo_lab_group_id" : [ [ "199" ] ]
+      },
+      "experimentName" : [ "Geo_FAP_ILLUMINA_EX_{F*126}{..}{R*126}" ],
+      "experimentAttributes" : { },
+      "sampleName" : [ "FAP_0010_Li_P_PE_306_EX", "FAP_0010_Li_P_PE_359_EX", "FAP_0010_Li_R_PE_356_EX" ],
+      "sampleAttributes" : {
+        "sample.geo_library_source_template_type" : [ [ "EX" ] ],
+        "sample.geo_prep_kit" : [ [ "Agilent SureSelect XT" ] ],
+        "sample.geo_run_id_and_position_and_slot" : [ [ "2273_4_2" ], [ "2273_5_2", "2275_2_1" ], [ "2273_6_2", "2275_3_1" ] ],
+        "sample.geo_targeted_resequencing" : [ [ "SureSelect v4" ] ],
+        "sample.geo_template_id" : [ [ "76897" ], [ "77055" ], [ "77056" ] ],
+        "sample.geo_template_type" : [ [ "Illumina PE Library Seq" ] ],
+        "sample.geo_tissue_origin" : [ [ "Li" ] ],
+        "sample.geo_tissue_type" : [ [ "P" ], [ "R" ] ]
+      },
+      "sequencerRunName" : [ "150508_D00343_0086_BC6U94ANXX", "150512_D00355_0085_AC710WANXX" ],
+      "sequencerRunAttributes" : {
+        "sequencerrun.geo_instrument_run_id" : [ [ "2273" ], [ "2275" ] ]
+      },
+      "laneName" : [ "150508_D00343_0086_BC6U94ANXX_lane_4", "150508_D00343_0086_BC6U94ANXX_lane_5", "150508_D00343_0086_BC6U94ANXX_lane_6", "150512_D00355_0085_AC710WANXX_lane_2", "150512_D00355_0085_AC710WANXX_lane_3" ],
+      "laneAttributes" : {
+        "lane.geo_lane" : [ [ "2" ], [ "3" ], [ "4" ], [ "5" ], [ "6" ] ]
+      },
+      "iusTag" : [ "AATCCGTC", "GTCTGTCA", "GTGTTCTA" ],
+      "iusAttributes" : { },
+      "workflowName" : [ "MutectStrelka" ],
+      "processingAlgorithm" : [ "ProvisionFiles" ],
+      "processingAttributes" : { },
+      "fileMetaType" : [ "application/vcf-4-gzip" ],
+      "fileAttributes" : {
+        "file.variant_caller" : [ [ "strelka-1.0.13" ] ],
+        "file.variant_type" : [ [ "snv" ] ]
+      },
+      "fileId" : -1010350334
+    } ]
+  }, {
+    "workflowIni" : {
+      "collapse_vcf" : "true",
+      "data_dir" : "data",
+      "do_intersect" : "false",
+      "external_name" : "NA",
+      "gatk_dbsnp_vcf" : "/.mounts/labs/PDE/data/MutectStrelka/dbSNP/dbsnp_138.hg19.leftAligned.vcf.gz",
+      "gatk_dir" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.0/bin/GenomeAnalysisTK-3.4-46/",
+      "group_id" : "NA",
+      "group_id_description" : "NA",
+      "identifier" : "FAP_0010_Li_P_PE_359_EX",
+      "input_sources" : "UNIFIED_GENOTYPER,HAPLOTYPE_CALLER",
+      "java" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.0/bin/jre1.7.0_51/bin/java",
+      "manual_output" : "false",
+      "metadata" : "metadata",
+      "output_dir" : "seqware-results",
+      "picard_dir" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.0/bin/picard-tools-1.140/",
+      "picard_memory" : "5000",
+      "queue" : "",
+      "ref_fasta" : "/.mounts/labs/PDE/data/gatkAnnotationResources/hg19_random.fa",
+      "tabix_version" : "0.2.6",
+      "tmp_dir" : "tmp"
+    },
+    "files" : [ {
+      "studyTitle" : [ "FAP" ],
+      "studyAttributes" : {
+        "study.geo_lab_group_id" : [ [ "199" ] ]
+      },
+      "experimentName" : [ "Geo_FAP_ILLUMINA_EX_{F*126}{..}{R*126}" ],
+      "experimentAttributes" : { },
+      "sampleName" : [ "FAP_0010_Li_P_PE_306_EX", "FAP_0010_Li_P_PE_359_EX", "FAP_0010_Li_R_PE_356_EX" ],
+      "sampleAttributes" : {
+        "sample.geo_library_source_template_type" : [ [ "EX" ] ],
+        "sample.geo_prep_kit" : [ [ "Agilent SureSelect XT" ] ],
+        "sample.geo_run_id_and_position_and_slot" : [ [ "2273_4_2" ], [ "2273_5_2", "2275_2_1" ], [ "2273_6_2", "2275_3_1" ] ],
+        "sample.geo_targeted_resequencing" : [ [ "SureSelect v4" ] ],
+        "sample.geo_template_id" : [ [ "76897" ], [ "77055" ], [ "77056" ] ],
+        "sample.geo_template_type" : [ [ "Illumina PE Library Seq" ] ],
+        "sample.geo_tissue_origin" : [ [ "Li" ] ],
+        "sample.geo_tissue_type" : [ [ "P" ], [ "R" ] ]
+      },
+      "sequencerRunName" : [ "150508_D00343_0086_BC6U94ANXX", "150512_D00355_0085_AC710WANXX" ],
+      "sequencerRunAttributes" : {
+        "sequencerrun.geo_instrument_run_id" : [ [ "2273" ], [ "2275" ] ]
+      },
+      "laneName" : [ "150508_D00343_0086_BC6U94ANXX_lane_4", "150508_D00343_0086_BC6U94ANXX_lane_5", "150508_D00343_0086_BC6U94ANXX_lane_6", "150512_D00355_0085_AC710WANXX_lane_2", "150512_D00355_0085_AC710WANXX_lane_3" ],
+      "laneAttributes" : {
+        "lane.geo_lane" : [ [ "2" ], [ "3" ], [ "4" ], [ "5" ], [ "6" ] ]
+      },
+      "iusTag" : [ "AATCCGTC", "GTCTGTCA", "GTGTTCTA" ],
+      "iusAttributes" : { },
+      "workflowName" : [ "GATK3" ],
+      "processingAlgorithm" : [ "ProvisionFiles" ],
+      "processingAttributes" : { },
+      "fileMetaType" : [ "application/vcf-4-gzip" ],
+      "fileAttributes" : {
+        "file.variant_caller" : [ [ "UNIFIED_GENOTYPER" ] ]
+      },
+      "fileId" : -931648579
+    } ]
+  } ]
+}
