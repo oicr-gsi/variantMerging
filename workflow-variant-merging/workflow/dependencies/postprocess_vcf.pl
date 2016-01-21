@@ -19,8 +19,6 @@ use constant DEBUG=>0;
 use Getopt::Long;
 use Data::Dumper;
 my($bgzip,$input,$tabix,$collapse);
-
-
 my $result = GetOptions ('input=s'    => \$input,    # input vcf file
                          'collapse'   => \$collapse, # collapse 4-column vcf into 2-column vcf
                          'bgzip=s'    => \$bgzip,    # directory with temporary GATK files
@@ -28,7 +26,6 @@ my $result = GetOptions ('input=s'    => \$input,    # input vcf file
 
 my $USAGE = "postprocess_vcf.pl --input [vcf file] --bgzip [path to bgzip] --tabix [path to tabix] --collapse [flag to indicate the merge of 4 columns into 2]\n";
 if (! -e $input || ! -e $bgzip || ! -e $tabix) { die $USAGE; }
-
 
 my $file = $collapse ? &collapse($input) : $input;
 

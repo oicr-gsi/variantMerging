@@ -1,4 +1,4 @@
-#! /usr/bin/perl
+#!/usr/bin/perl -w
 
 use strict;
 use warnings;
@@ -132,7 +132,6 @@ sub read_fields {
   }
   close(VCF);
  }
- #print Dumper($keys);
  return $keys;
 }
 
