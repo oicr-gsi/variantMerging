@@ -411,7 +411,6 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     protected Job prepareVcf(String inputFile) {
 
         Job jobVcfPrep = wf.createBashJob("prepare_vcf");
-        //jobVcfPrep.setCommand
         StringBuilder postprocessCommand = new StringBuilder();
         postprocessCommand.append(getWorkflowBaseDir())
                 .append("/dependencies/postprocess_vcf.pl")
@@ -421,6 +420,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         if (this.doCollapse) {
             postprocessCommand.append(" --collapse ");
         }
+        jobVcfPrep.setCommand(postprocessCommand.toString());
         jobVcfPrep.setMaxMemory("2000");
 
         if (!this.queue.isEmpty()) {
