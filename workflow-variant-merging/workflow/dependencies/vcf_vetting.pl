@@ -1,10 +1,11 @@
-#! /usr/bin/perl
+#!/usr/bin/perl -w
 
 use strict;
 use warnings;
 use Data::Dumper;
 use Getopt::Long;
-use constant DEBUG=>1;
+use IO::File;
+use constant DEBUG=>0;
 
 =head1 vcf_vetting.pl 
  
@@ -17,16 +18,21 @@ use constant DEBUG=>1;
 
  * removes tool-specific header lines
 
+ this script will take the strelka or mutect vcf files and clean the headers, also removing non-canonical contigs
+ will impute GT field if it is absent
 =cut
 
-### this script will take the strelka or mutect vcf files and clean the headers, also removing non-canonical contigs
-### will impute GT field if it is absent
-
+my $USAGE = "vcf_vetting.pl --input [input vcf file (may be bgzipped)] --infiles [optional comma-sep list of all used inputs] --index [optional index to use for disambiguation, needed only when infiles are passed] --output [output file] \n";
 my %opts = (canonical=>1);  ### only show canonical
 
-### Optional filter (may be PASS to include only PASS calls)
-GetOptions('filter=s'     => \$opts{filter});
-my $input = shift @ARGV;
+GetOptions('input=s'      => \$opts{input},
+           'source=s'     => \$opts{source},
+           'infiles|inlist|all=s' => \$opts{infiles},
+           'index|suffix=i'       => \$opts{index},
+           'output|out=s' => \$opts{output});
+my $input  = $opts{input};
+my $output = $opts{output};
+if (! $input || !-e $input || !$output || ($opts{infiles} && !$opts{index})) { die $USAGE; }
 
 ### Check if we have an input
 
@@ -35,6 +41,14 @@ die "Need some input to work with" if ! -e $input;
 ### Define canonical chromosomes
 my %chroms = map{"chr".$_ => 1} (1..22,"X","Y","M");
 
+### Check if we have infiles and if yes, there are two of them
+my $formats = {};
+
+if ($opts{infiles}) {
+ my @ins = split(",", $opts{infiles});
+ if (scalar(@ins) != 2) { die "The number of vcf files must be two, we support merging of two files ONLY"; }
+ $formats = &read_fields(\@ins);
+}
 
 ### load the vcf information
 my %vcf=%{load_vcf($input)};
@@ -67,7 +81,6 @@ map {delete($vcf{header}{$_})} (keys %headers2clean);
 print STDERR "Finished injecting and cleaning\n" if DEBUG;
 
 
-#print STDERR Dumper($vcf{header});
 my @keys = (keys %{$vcf{header}});
 
 foreach my $head(qw/fileformat FORMAT INFO FILTER/) {
@@ -84,16 +97,52 @@ foreach my $key(sort @keys) {
     map{$vcf{headerblock}.="##".$key."=".$vcf{header}{$key}{$_}."\n"} (sort keys %{$vcf{header}{$key}});
 }
 
+my $fo = new IO::File(">$output") or die "Couldn't open file [$output] for writing";
+print $fo $vcf{headerblock};
+print $fo $vcf{colheaders}."\n";
+map{print $fo "$vcf{calls}{$_}{line}\n"} (sort keys %{$vcf{calls}});
 
-print $vcf{headerblock};
-print $vcf{colheaders}."\n";
-map{print "$vcf{calls}{$_}{line}\n"} (sort keys %{$vcf{calls}});
+$fo->close;
 
-#### this will load the vcf files into a single hash
-#### requires both the strelka and mutect files
-#### strelka file will be loaded first...all records
-#### mutect file will be loaded second...intesecting records
-#### non-intersecting strelka records then removed
+=head2 
+ this subroutine is for checking duplicate FORMAT headers
+ 
+=cut
+
+sub read_fields {
+
+ my $vcfs = shift @_;
+ my $keys = {};
+
+ for (my $f = 0; $f < 2; $f++) {
+   my $instream = $vcfs->[$f] =~/.gz$/ ? "zcat $vcfs->[$f] | " : "<$vcfs->[$f]";
+   (open VCF, $instream) || die "could not open vcf file $vcfs->[$f]";
+   while (<VCF>) {
+   if (/^##/) {
+     my($metakey,$metaval)=/^##(.*?)=(.*)/;   ### key value pairs, separated by =
+     if($metaval=~/^\<.*\>$/) {
+        my ($id) = $metaval =~/ID=([^,<>]+)/;
+        if ($metakey eq "FORMAT") {
+            $keys->{$id}++;
+        }
+     }
+     next;
+   } 
+   last;
+  }
+  close(VCF);
+ }
+ return $keys;
+}
+
+=head2 load_vcf
+ this subroutine will load the vcf files into a single hash
+ requires both the strelka and mutect files
+ strelka file will be loaded first...all records
+ mutect file will be loaded second...intesecting records
+ non-intersecting strelka records then removed
+=cut
+
 sub load_vcf{
 	my %vcf;
 	$input = shift @_;
@@ -107,13 +156,26 @@ sub load_vcf{
 				my($metakey,$metaval)=/^##(.*?)=(.*)/;   ### key value pairs, separated by =
                                 
                                 if($metaval=~/^\<.*\>$/) {
-                                  my ($id)=$metaval=~/ID=([^,<>]+)/;
-                                  $vcf{header}{$metakey}{$id}=$metaval;
+                                  my ($id) = $metaval=~/ID=([^,<>]+)/;
+                                  if ($metaval=~/Description/) {
+                                        $metaval=~s/(Description=\".*?)\"/$1;source=$opts{source}\"/;
+                                  } else {    ### add description key
+                                      $metaval=~s/\>/,Description=\"source=$opts{source}\">/;
+                                  }
+
+				  ### disabiguation code
+                                  if ($metakey eq "FORMAT" && $opts{infiles}) {
+                                    #print STDERR "Found FORMAT [$id] with $formats->{$id} occurances\n";
+                                    if ($formats->{$id} > 1) {
+                                     $metaval=~s/ID=([^,<>]+)/ID=$1$opts{index}/;
+                                    }
+                                  } 
+                                  $vcf{header}{$metakey}{$id} = $metaval;
                                 } else {
                                   $vcf{header}{$metakey}{noid}=$metaval;
                                 }
 
-			} elsif (/^#/){  	### the column headerline ########################
+			} elsif (/^#/){	### the column headerline ########################
                                 my $colheader = $_;
                                 $colheader =~s/FORMAT.*/FORMAT/;
                                 $colheader = join("\t",($colheader, "NORMAL","TUMOR"));
@@ -123,10 +185,19 @@ sub load_vcf{
                                      $imputeGT = 1;
                                 }
 
-			} else {   		#### the data records ##########################
+			} else {### the data records ##########################
 				my @f=split /\t/;
                                 if ($opts{canonical} && !$chroms{$f[0]}) { next; }
 				my $call  = join(":",@f[0,1,3,4]);
+
+                                ### Disambiguate FORMAT fields if we have infiles
+                                if ($opts{infiles}) {
+                                    my @tfs = split(":",$f[8]);
+                                    for (my $tf = 0; $tf < @tfs; $tf++) {
+                                       map{if($tfs[$tf] eq $_ && $formats->{$_} > 1){$tfs[$tf].=$opts{index}}} (keys %{$formats});
+                                    }
+                                    $f[8] = join(":",@tfs);
+                                }
 
                                 ### Calculate GT using SGT
                                 if ($imputeGT) { 
@@ -147,12 +218,7 @@ sub load_vcf{
                                     $f[10] = join(":", ($gt_tumor,$f[10]));
                                     
                                 }
-				#$vcf{calls}{$call}{info}   = $f[7];
-				#$vcf{calls}{$call}{format} = $f[8];
-				#$vcf{calls}{$call}{normal} = $f[9];  
-				#$vcf{calls}{$call}{tumor}  = $f[10];   ### 
-                                
-				#$vcf{calls}{$call}{main}   = join("\t",@f[0..6]);
+
                                 $vcf{calls}{$call}{line}   = join("\t",@f);
 			}	
 		}
@@ -183,10 +249,6 @@ sub full_header {
                                 }
                         }
                 }
-                #if(my $new=$newheaders{$key}){
-                #        $fullheader.=$new;
-                #}
-
         }
 
         for my $key(@keys){

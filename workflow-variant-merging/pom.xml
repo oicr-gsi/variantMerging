@@ -19,8 +19,9 @@
     <properties>
         <workflow-name>VariantMerging</workflow-name>
         <picard-version>1.140</picard-version>
+        <tabix-version>0.2.6</tabix-version>
+        <gatk-version>3.4-46</gatk-version>
         <workflow-utilities.version>1.7</workflow-utilities.version>
-        <samtools-version>0.1.19</samtools-version>
     </properties>
 
     <dependencies>
@@ -33,37 +34,42 @@
         </dependency>
         <dependency>
             <groupId>samtools</groupId>
-            <artifactId>samtools</artifactId>
-            <version>${samtools-version}</version>
+            <artifactId>tabix</artifactId>
+            <version>${tabix-version}</version>
             <type>zip</type>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>ca.on.oicr.pde</groupId>
             <artifactId>workflow-utilities</artifactId>
-            <version>1.7</version>
+            <version>${workflow-utilities.version}</version>
         </dependency>
         <dependency>
             <groupId>GenomeAnalysisTK</groupId>
             <artifactId>GenomeAnalysisTK</artifactId>
-            <version>3.4-46</version>
+            <version>${gatk-version}</version>
             <type>zip</type>
         </dependency>
     </dependencies>
-
+    
     <build>
         <plugins>
             <plugin>
-                <groupId>com.pyx4j</groupId>
-                <artifactId>maven-junction-plugin</artifactId>
-                <configuration>
-                    <links>
-                        <link>
-                            <dst>${project.build.directory}/Workflow_Bundle_${workflow-directory-name}_${project.version}_SeqWare_${seqware-version}/Workflow_Bundle_${workflow-directory-name}/${project.version}/data</dst>
-                            <src>${basedir}/links</src>
-                        </link>
-                    </links>
-                </configuration>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>scripts_executable</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>chmod</executable>
+                            <commandlineArgs>-R 755 ${bundleDirectory}/dependencies</commandlineArgs>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
