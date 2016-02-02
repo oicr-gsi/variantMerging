@@ -18,24 +18,59 @@ use strict;
 use constant DEBUG=>0;
 use Getopt::Long;
 use Data::Dumper;
-my($bgzip,$input,$tabix,$collapse);
+my($bgzip,$input,$tabix,$collapse,$passonly);
 my $result = GetOptions ('input=s'    => \$input,    # input vcf file
                          'collapse'   => \$collapse, # collapse 4-column vcf into 2-column vcf
+                         'pass-only'  => \$passonly, # output only PASS calls
                          'bgzip=s'    => \$bgzip,    # directory with temporary GATK files
                          'tabix=s'    => \$tabix);   # file with calculated indexes
 
-my $USAGE = "postprocess_vcf.pl --input [vcf file] --bgzip [path to bgzip] --tabix [path to tabix] --collapse [flag to indicate the merge of 4 columns into 2]\n";
+my $USAGE = "postprocess_vcf.pl --input [vcf file] --bgzip [path to bgzip] --tabix [path to tabix] --collapse [flag to indicate the merge of 4 columns into 2] --pass-only [optional flag to filter passed calls]\n";
+
 if (! -e $input || ! -e $bgzip || ! -e $tabix) { die $USAGE; }
 
 my $file = $collapse ? &collapse($input) : $input;
+$file    = $passonly ? &filter($file)    : $file;
 
 `$bgzip -c $file > $input.gz && $tabix -p vcf $input.gz`;
 print STDERR "Finished preparing vcf file\n";
 
+=head2 filter rejected calls
+
+ filter REJECT calls
+
+=cut
+
+sub filter {
+
+my $in = shift @_;
+open(VCF, "<$in") or die "Couldn't read from [$in]";
+my $tmp = $in;
+$tmp.="_$$";
+print STDERR "Opening [$tmp]\n";
+open(TMP,">$tmp") or die "Couldn't write to temporary file [$tmp]";
+
+while(<VCF>) {
+ if (!/^#/) {
+  my @f = split /\t/;
+  if ($f[6] ne 'PASS' && $passonly) {
+   print STDERR "Filtering REJECT calls\n" if DEBUG;
+   next;
+  }
+ }
+
+ print TMP $_;
+}
+
+close VCF;
+close TMP;
+
+return $tmp;
+}
 
 =head2 collapse
 
- TODO: collapse last four columns into two
+ collapse last four columns into two
  and fix the header (make it NORMAL TUMOR)
 
 =cut
@@ -68,7 +103,7 @@ while(<VCF>) {
        print join("\t",@f)."\n";
        next;
    }
-   
+
    ### Disambiguate last four columns
    my @cols = grep {/:/} @f[9..12];
    if (scalar(@cols) == 2) {

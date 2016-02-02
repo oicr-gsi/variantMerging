@@ -5,7 +5,7 @@ use warnings;
 use Data::Dumper;
 use Getopt::Long;
 use IO::File;
-use constant DEBUG=>0;
+use constant DEBUG=>1;
 
 =head1 vcf_vetting.pl 
  
@@ -152,26 +152,39 @@ sub load_vcf{
                 my $imputeGT  = 0;
 		while(<VCF>){
 			chomp;
-			if(/^##/){   	### the headers #########################
+			if(/^##/){	### the headers #########################
 				my($metakey,$metaval)=/^##(.*?)=(.*)/;   ### key value pairs, separated by =
                                 
                                 if($metaval=~/^\<.*\>$/) {
                                   my ($id) = $metaval=~/ID=([^,<>]+)/;
-                                  if ($metaval=~/Description/) {
+                                  if ($metaval=~/Description/ && $metaval!~/ID=PASS/ && $metaval!~/ID=REJECT/) {
                                         $metaval=~s/(Description=\".*?)\"/$1;source=$opts{source}\"/;
                                   } else {    ### add description key
-                                      $metaval=~s/\>/,Description=\"source=$opts{source}\">/;
+                                      if (!/contig/ && $metaval!~/ID=PASS/ && $metaval!~/ID=REJECT/) {
+                                        $metaval=~s/\>/,Description=\"source=$opts{source}\">/;
+                                      }
                                   }
 
 				  ### disabiguation code
                                   if ($metakey eq "FORMAT" && $opts{infiles}) {
-                                    #print STDERR "Found FORMAT [$id] with $formats->{$id} occurances\n";
                                     if ($formats->{$id} > 1) {
                                      $metaval=~s/ID=([^,<>]+)/ID=$1$opts{index}/;
                                     }
                                   } 
                                   $vcf{header}{$metakey}{$id} = $metaval;
                                 } else {
+                                  if ($metaval=~/Description/) {
+                                        $metaval=~s/(Description=\".*?)\"/$1;source=$opts{source}\"/;
+                                  } else {    ### add description key
+                                        if ($metaval=~/\>/) {
+                                            $metaval=~s/\>/,Description=\"source=$opts{source}\">/;
+                                        } else {
+                                            if ($metakey=~/germlineSnvTheta/ || $metakey=~/priorSomaticSnvRate/) {
+                                                $metaval.=",Description=\"source=$opts{source}\"";
+                                            }
+                                        }
+                                  }
+                                  print STDERR "AFTER: $metaval\n";
                                   $vcf{header}{$metakey}{noid}=$metaval;
                                 }
 
@@ -179,10 +192,10 @@ sub load_vcf{
                                 my $colheader = $_;
                                 $colheader =~s/FORMAT.*/FORMAT/;
                                 $colheader = join("\t",($colheader, "NORMAL","TUMOR"));
-				$vcf{colheaders}=$colheader;
+				$vcf{colheaders} = $colheader;
                                 if (!$vcf{header}{FORMAT}{GT}) {
-                                     $vcf{header}{FORMAT}{GT} = "<ID=GT,Number=1,Type=String,Description=\"Genotype, contructed from SGT INFO via external modification\">";
-                                     $imputeGT = 1;
+                                  $vcf{header}{FORMAT}{GT} = "<ID=GT,Number=1,Type=String,Description=\"Genotype, contructed from SGT INFO via external modification;source=$opts{source}\">";
+                                  $imputeGT = 1;
                                 }
 
 			} else {### the data records ##########################

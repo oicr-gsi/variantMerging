@@ -34,6 +34,16 @@
                 "--meta-types": "application/vcf-4-gzip",
                 "--variant-type": "snv"
             }
+        },
+        {
+            "id": "FAP_0010_Sampletest4",
+            "parameters": {
+                "--root-sample-name": "FAP_0010",
+                "--template-type": "EX",
+                "--pass-only ": "false",
+                "--meta-types": "application/vcf-4-gzip",
+                "--variant-type": "snv"
+            }
         }
     ]
 }

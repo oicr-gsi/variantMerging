@@ -67,6 +67,7 @@ public class VariantMergingDecider extends OicrDecider {
     private String variantFilter = "";
     private boolean doIntersect;
     private boolean doCollapse;
+    private boolean doFilter;
 
     public VariantMergingDecider() {
         super();
@@ -88,6 +89,7 @@ public class VariantMergingDecider extends OicrDecider {
         parser.accepts("queue", "Optional: Set the queue (Default: not set)").withRequiredArg();
         parser.accepts("do-intersect", "Optional: Emit only variants called by two SNV callers").withRequiredArg();
         parser.accepts("do-collapse", "Optional: Collapse 4-columns prouced by CombineVariants into two columns (enabled by default)").withRequiredArg();
+        parser.accepts("pass-only", "Optional: Output only PASS calls in the overlap vcf (enabled by default)").withRequiredArg();
         parser.accepts("variant-callers", "Optional: Comma-separated list of names for two variant callers that we want to extract data for").withRequiredArg();
         parser.accepts("verbose", "Optional: Enable verbose Logging").withRequiredArg();
     }
@@ -174,6 +176,13 @@ public class VariantMergingDecider extends OicrDecider {
             this.doIntersect = Boolean.valueOf(options.valueOf("do-intersect").toString());
         } else {
             this.doIntersect = false;
+        }
+        
+        // We don't want intersect as a default
+        if (this.options.has("pass-only")) {
+            this.doFilter = Boolean.valueOf(options.valueOf("pass-only").toString());
+        } else {
+            this.doFilter = true;
         }
 
         // Check if we have list of callers, we use it if we won't have caller id metadata 
@@ -388,6 +397,7 @@ public class VariantMergingDecider extends OicrDecider {
         iniFileMap.put("manual_output", this.manual_output);
         iniFileMap.put("collapse_vcf", Boolean.toString(this.doCollapse));
         iniFileMap.put("do_intersect", Boolean.toString(this.doIntersect));
+        iniFileMap.put("pass_only", Boolean.toString(this.doFilter));
              
         iniFileMap.put("queue", this.queue);
       

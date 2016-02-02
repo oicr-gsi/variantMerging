@@ -66,6 +66,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
     private ArrayList<String> sources;
     private boolean doCollapse;
     private boolean doIntersect;
+    private boolean doFilter;
 
     //References
     private String genomeFile;
@@ -121,6 +122,10 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         //Optional Intersect
         String intersectVariants = getOptionalProperty("do_intersect", "false");
         this.doIntersect = Boolean.valueOf(intersectVariants);
+        
+        //Optional filtering
+        String filterVariants = getOptionalProperty("pass_only", "true");
+        this.doFilter = Boolean.valueOf(filterVariants);
 
         //Picard
         picard_dir = getOptionalProperty("picard_dir", binDir);
@@ -346,7 +351,6 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
      * @param priorityIndex
      * @return
      */
-    //TODO remove priorityIndex
     protected Job combineVcf(Map<String, String> inputs, String outputFile) {
         Job jobGATK = this.wf.createBashJob("combine_calls");
         StringBuilder gatkCommand = new StringBuilder();
@@ -419,6 +423,9 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
                 .append(" --bgzip ").append(getWorkflowBaseDir()).append("/bin/tabix-").append(this.tabixVersion).append("/bgzip");
         if (this.doCollapse) {
             postprocessCommand.append(" --collapse ");
+        }
+        if (this.doFilter) {
+            postprocessCommand.append(" --pass-only ");
         }
         jobVcfPrep.setCommand(postprocessCommand.toString());
         jobVcfPrep.setMaxMemory("2000");
