@@ -1,8 +1,9 @@
 #!/usr/bin/perl -w
 
-# =================================================================================================
-# A simple script wraps bgzip and tabix so that we don't have missing apostrophes problem in seqware
-# =================================================================================================
+use strict;
+use constant DEBUG=>0;
+use Getopt::Long;
+use Data::Dumper;
 
 =head2 postprocess_vcf.pl
 
@@ -14,10 +15,6 @@
 
 =cut
 
-use strict;
-use constant DEBUG=>0;
-use Getopt::Long;
-use Data::Dumper;
 my($bgzip,$input,$tabix,$collapse,$passonly);
 my $result = GetOptions ('input=s'    => \$input,    # input vcf file
                          'collapse'   => \$collapse, # collapse 4-column vcf into 2-column vcf
@@ -29,49 +26,18 @@ my $USAGE = "postprocess_vcf.pl --input [vcf file] --bgzip [path to bgzip] --tab
 
 if (! -e $input || ! -e $bgzip || ! -e $tabix) { die $USAGE; }
 
-my $file = $collapse ? &collapse($input) : $input;
-$file    = $passonly ? &filter($file)    : $file;
+my $file = &collapse($input);
 
 `$bgzip -c $file > $input.gz && $tabix -p vcf $input.gz`;
 print STDERR "Finished preparing vcf file\n";
 
-=head2 filter rejected calls
-
- filter REJECT calls
-
-=cut
-
-sub filter {
-
-my $in = shift @_;
-open(VCF, "<$in") or die "Couldn't read from [$in]";
-my $tmp = $in;
-$tmp.="_$$";
-print STDERR "Opening [$tmp]\n";
-open(TMP,">$tmp") or die "Couldn't write to temporary file [$tmp]";
-
-while(<VCF>) {
- if (!/^#/) {
-  my @f = split /\t/;
-  if ($f[6] ne 'PASS' && $passonly) {
-   print STDERR "Filtering REJECT calls\n" if DEBUG;
-   next;
-  }
- }
-
- print TMP $_;
-}
-
-close VCF;
-close TMP;
-
-return $tmp;
-}
-
 =head2 collapse
 
- collapse last four columns into two
+ Optionally collapse last four columns into two
  and fix the header (make it NORMAL TUMOR)
+
+ Here we also check if we were asked 
+ to keep only PASS calls
 
 =cut
 
@@ -86,7 +52,20 @@ print STDERR "Opening [$tmp]\n";
 open(TMP,">$tmp") or die "Couldn't write to temporary file [$tmp]";
 
 while(<VCF>) {
- if(/^##/){      ### the headers #########################
+ if(/^##/){ ### the headers #########################
+    if (/ID=(PASS)/ || /ID=(REJECT)/) {
+      my $call = $1;
+      print STDERR "Detected $call field\n" if DEBUG;
+      my $description = $call eq "PASS" ? "Note that PASS marks variants approved by at least One of two callers" 
+                                        : "Note that REJECT marks variants failed by Both of two callers";
+      if (/Description/) {
+          s/(Description=\".*?)\"/$1;$description\"/;
+      } else { ### add description key
+          if ($_=~/\>/) {
+              s/\>/,Description=\"$description\">/;
+          } 
+      }
+    }
     print TMP $_;
  } elsif (/^#/){ ### the column headerline ###############
     my $colheader = $_;
@@ -98,10 +77,21 @@ while(<VCF>) {
    # Join the column's data here
    chomp;
    my @f=split /\t/;
+ 
+   if ($f[6] ne 'PASS' && $passonly) {
+     print STDERR "Filtering REJECT calls\n" if DEBUG;
+     next;
+   }
+
+   if (!$collapse) {
+     print TMP $_."\n";
+     next;
+   }
+
    if (scalar(@f) != 13) {
-       print STDERR "The line has less than 13 columns, no merging\n";
-       print join("\t",@f)."\n";
-       next;
+     print STDERR "The line has less than 13 columns, no merging\n";
+     print join("\t",@f)."\n";
+     next;
    }
 
    ### Disambiguate last four columns

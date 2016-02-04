@@ -5,7 +5,7 @@ use warnings;
 use Data::Dumper;
 use Getopt::Long;
 use IO::File;
-use constant DEBUG=>1;
+use constant DEBUG=>0;
 
 =head1 vcf_vetting.pl 
  
@@ -20,16 +20,17 @@ use constant DEBUG=>1;
 
  this script will take the strelka or mutect vcf files and clean the headers, also removing non-canonical contigs
  will impute GT field if it is absent
+
 =cut
 
 my $USAGE = "vcf_vetting.pl --input [input vcf file (may be bgzipped)] --infiles [optional comma-sep list of all used inputs] --index [optional index to use for disambiguation, needed only when infiles are passed] --output [output file] \n";
 my %opts = (canonical=>1);  ### only show canonical
 
-GetOptions('input=s'      => \$opts{input},
-           'source=s'     => \$opts{source},
+GetOptions('input=s'              => \$opts{input},
+           'source=s'             => \$opts{source},
            'infiles|inlist|all=s' => \$opts{infiles},
            'index|suffix=i'       => \$opts{index},
-           'output|out=s' => \$opts{output});
+           'output|out=s'         => \$opts{output});
 my $input  = $opts{input};
 my $output = $opts{output};
 if (! $input || !-e $input || !$output || ($opts{infiles} && !$opts{index})) { die $USAGE; }
@@ -55,30 +56,12 @@ my %vcf=%{load_vcf($input)};
 my $imputeGT;
 print STDERR scalar(keys %vcf)." entries loaded from input vcf files\n" if DEBUG;
 
-#### these are headers that need to be injected
-####  this should have been handled when the strelka and mutect output was filtered and annotated
-our %headers2inject=(
-	INFO=>{
-		ANNOVAR        =>"<ID=ANNOVAR,Number=.,Type=String,Description=\"Annotation from Annovar\">",
-		ANNOVAR_EXONIC =>"<ID=ANNOVAR_EXONIC,Number=.,Type=String,Description=\"Annotation from Annovar\">",
-		DBSNP_GMAF     =>"<ID=DBSNP_GMAF,Number=1,Type=String,Description=\"dbSNP, global minor allele frequency\">",
-		DBSNP_ALLELE   =>"<ID=DBSNP_ALLELE,Number=1,Type=String,Description=\"Allele Identified in dbSNP137\">",
-		DBSNP_STRAND   =>"<ID=DBSNP_STRAND,Number=1,Type=String,Description=\"dbSNP strand\">",
-		DBSNP_G5A      =>"<ID=DBSNP_G5A,Number=1,Type=String,Description=\"Identified in dbSNP G5A subset\">",
-		DBSNP_G5       =>"<ID=DBSNP_G5,Number=1,Type=String,Description=\"Identified in dbSNP G5 subset\">",
-		TRACK          =>"<ID=TRACK,Number=1,Type=String,Description=\"Additional tracks related to variant position\">"
-	}
-);
-
 #### these are header lines that need to be removed
 
 our %headers2clean = (source => 1, inputs => 1, source_version => 1, content => 1, startTime => 1, cmdline => 1);
 
-foreach my $field(keys %headers2inject) {
- map {$vcf{header}{$field}->{$_} = $headers2inject{$field}->{$_}} (keys %{$headers2inject{$field}});
-}
 map {delete($vcf{header}{$_})} (keys %headers2clean);
-print STDERR "Finished injecting and cleaning\n" if DEBUG;
+print STDERR "Finished cleaning\n" if DEBUG;
 
 
 my @keys = (keys %{$vcf{header}});
@@ -106,7 +89,6 @@ $fo->close;
 
 =head2 
  this subroutine is for checking duplicate FORMAT headers
- 
 =cut
 
 sub read_fields {
@@ -184,7 +166,7 @@ sub load_vcf{
                                             }
                                         }
                                   }
-                                  print STDERR "AFTER: $metaval\n";
+                                  print STDERR "AFTER: $metaval\n" if DEBUG;
                                   $vcf{header}{$metakey}{noid}=$metaval;
                                 }
 
@@ -194,7 +176,7 @@ sub load_vcf{
                                 $colheader = join("\t",($colheader, "NORMAL","TUMOR"));
 				$vcf{colheaders} = $colheader;
                                 if (!$vcf{header}{FORMAT}{GT}) {
-                                  $vcf{header}{FORMAT}{GT} = "<ID=GT,Number=1,Type=String,Description=\"Genotype, contructed from SGT INFO via external modification;source=$opts{source}\">";
+                                  $vcf{header}{FORMAT}{GT} = "<ID=GT,Number=1,Type=String,Description=\"Genotype;source=$opts{source}\">";
                                   $imputeGT = 1;
                                 }
 
@@ -240,36 +222,3 @@ sub load_vcf{
 	return \%vcf;
 }
 
-=head3 full_header
-
- function that forms a headerblock
-
-=cut
-
-
-sub full_header {
-        my ($vcf,$opts)=@_;
-        my ($headers)=@_;
-        my @keys=sort keys %$headers;
-
-        my $fullheader;
-        ### keys to start with
-        for my $key(qw/FORMAT INFO FILTER/){
-                for my $id(sort keys %{$$headers{$key}}) {
-                        for my $caller(qw/strelka mutect/){
-                                if(my $headerline=$$headers{$key}{$id}{$caller}){
-                                $fullheader.="##".$key."=".$headerline."\n";
-                                }
-                        }
-                }
-        }
-
-        for my $key(@keys){
-                for my $id(sort keys %{$$headers{$key}}){
-                        for my $caller(qw/strelka mutect/){
-                                $fullheader.="##".$key."=".$$headers{$key}{$id}{$caller}."\n" if(defined $$headers{$key}{$id}{$caller});
-                        }
-                }
-        }
-        return $fullheader;
-}
