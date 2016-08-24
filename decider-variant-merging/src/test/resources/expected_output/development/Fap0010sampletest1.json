@@ -62,15 +62,14 @@
       },
       "iusTag" : [ "AATCCGTC", "GTCTGTCA", "GTGTTCTA" ],
       "iusAttributes" : { },
-      "workflowName" : [ "MutectStrelka" ],
+      "workflowName" : [ "GATK3" ],
       "processingAlgorithm" : [ "ProvisionFiles" ],
       "processingAttributes" : { },
       "fileMetaType" : [ "application/vcf-4-gzip" ],
       "fileAttributes" : {
-        "file.variant_caller" : [ [ "strelka-1.0.13" ] ],
-        "file.variant_type" : [ [ "snv" ] ]
+        "file.variant_caller" : [ [ "UNIFIED_GENOTYPER" ] ]
       },
-      "fileId" : -1010350334
+      "fileId" : -931648579
     } ]
   }, {
     "workflowIni" : {
@@ -82,7 +81,7 @@
       "gatk_dir" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.0/bin/GenomeAnalysisTK-3.4-46/",
       "group_id" : "NA",
       "group_id_description" : "NA",
-      "identifier" : "FAP_0010_Li_R_PE_356_EX",
+      "identifier" : "FAP_0010_Li_P_PE_359_EX",
       "input_sources" : "strelka,mutect",
       "java" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.0/bin/jre1.7.0_51/bin/java",
       "manual_output" : "false",
@@ -124,14 +123,15 @@
       },
       "iusTag" : [ "AATCCGTC", "GTCTGTCA", "GTGTTCTA" ],
       "iusAttributes" : { },
-      "workflowName" : [ "GATK3" ],
+      "workflowName" : [ "MutectStrelka" ],
       "processingAlgorithm" : [ "ProvisionFiles" ],
       "processingAttributes" : { },
       "fileMetaType" : [ "application/vcf-4-gzip" ],
       "fileAttributes" : {
-        "file.variant_caller" : [ [ "UNIFIED_GENOTYPER" ] ]
+        "file.variant_caller" : [ [ "strelka-1.0.13" ] ],
+        "file.variant_type" : [ [ "snv" ] ]
       },
-      "fileId" : -931648579
+      "fileId" : -1010350334
     } ]
   } ]
 }
