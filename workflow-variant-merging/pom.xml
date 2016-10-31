@@ -40,7 +40,6 @@
             <type>zip</type>
             <scope>provided</scope>
         </dependency>
-        </dependency>
         <dependency>
             <groupId>ca.on.oicr.pde</groupId>
             <artifactId>common-utilities</artifactId>
