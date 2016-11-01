@@ -11,7 +11,7 @@
 
     <groupId>ca.on.oicr.pde.workflows</groupId>
     <artifactId>VariantMerging</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
     <packaging>jar</packaging>
 
     <name>${display-name}</name>
@@ -22,6 +22,7 @@
         <tabix-version>0.2.6</tabix-version>
         <gatk-version>3.4-46</gatk-version>
         <workflow-utilities.version>1.7</workflow-utilities.version>
+        <common-utilities.version>1.6.5</common-utilities.version>
     </properties>
 
     <dependencies>
@@ -38,6 +39,11 @@
             <version>${tabix-version}</version>
             <type>zip</type>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>ca.on.oicr.pde</groupId>
+            <artifactId>common-utilities</artifactId>
+            <version>${common-utilities.version}</version>
         </dependency>
         <dependency>
             <groupId>ca.on.oicr.pde</groupId>

@@ -83,7 +83,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         cvTerms = new HashMap<String, Set<String>>();
         cvTerms.put(EDAM, new HashSet<String>(
                 Arrays.asList("VCF", "SNP", "tabix",
-                              "Variant Calling", "Sequence variation analysis")));
+                        "Variant Calling", "Sequence variation analysis")));
     }
 
     /**
@@ -122,7 +122,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         //Optional Intersect
         String intersectVariants = getOptionalProperty("do_intersect", "false");
         this.doIntersect = Boolean.valueOf(intersectVariants);
-        
+
         //Optional filtering
         String filterVariants = getOptionalProperty("pass_only", "true");
         this.doFilter = Boolean.valueOf(filterVariants);
@@ -130,7 +130,7 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
         //Picard
         picard_dir = getOptionalProperty("picard_dir", binDir);
         if (!picard_dir.endsWith("/")) {
-            gatk_dir += "/";
+            picard_dir += "/";
         }
 
         if (getProperty("tabix_version") == null) {
@@ -244,7 +244,21 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
             combineVcfs.addParent(j);
         }
 
-        Job upstreamJob = combineVcfs;
+        // post-process vcf (bgzip and index)
+        Job postprocessVcf = this.prepareVcf(this.dataDir + outputFile + "vcf");
+        postprocessVcf.addParent(combineVcfs);
+
+        // Annotate and provision final vcf and its index
+        SqwFile combinedVcf = this.createOutputFile(this.dataDir + outputFile + "vcf.gz", VCF_GZIPPED_METATYPE, manualOutput);
+        SqwFile combinedVcfTbi = this.createOutputFile(this.dataDir + outputFile + "vcf.gz.tbi", TBI_INDEX_METATYPE, manualOutput);
+
+        this.attachCVterms(combinedVcf, EDAM, "VCF,SNP,Variant Calling,Sequence variation analysis");
+        this.attachCVterms(combinedVcfTbi, EDAM, "tabix,Sequence variation analysis");
+
+        // We produce total of two files, vcf and the index
+        postprocessVcf.addFile(combinedVcf);
+        postprocessVcf.addFile(combinedVcfTbi);
+
         // produce intersect
         if (this.doIntersect) {
             operationsOnMergedFile += "intersect.";
@@ -252,25 +266,22 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
             outputFile = identifier + operationsOnMergedFile;
             Job subsetVcf = this.subsetVcf(this.dataDir + inputFile + "vcf", this.dataDir + outputFile + "vcf");
 
-            subsetVcf.addParent(upstreamJob);
-            upstreamJob = subsetVcf;
+            subsetVcf.addParent(combineVcfs);
+            // post-process vcf (bgzip and index)
+            Job postprocessVcf2 = this.prepareVcf(this.dataDir + outputFile + "vcf");
+            postprocessVcf2.addParent(subsetVcf);
+
+            // Annotate and provision final vcf and its index
+            SqwFile intersectVcf = this.createOutputFile(this.dataDir + outputFile + "vcf.gz", VCF_GZIPPED_METATYPE, manualOutput);
+            SqwFile intersectVcfTbi = this.createOutputFile(this.dataDir + outputFile + "vcf.gz.tbi", TBI_INDEX_METATYPE, manualOutput);
+
+            this.attachCVterms(intersectVcf, EDAM, "VCF,SNP,Variant Calling,Sequence variation analysis");
+            this.attachCVterms(intersectVcfTbi, EDAM, "tabix,Sequence variation analysis");
+
+            // We produce total of two files, vcf and the index
+            postprocessVcf2.addFile(intersectVcf);
+            postprocessVcf2.addFile(intersectVcfTbi);
         }
-
-        // post-process vcf (bgzip and index)
-        Job postprocessVcf = this.prepareVcf(this.dataDir + outputFile + "vcf");
-        postprocessVcf.addParent(upstreamJob);
-
-        // Annotate and provision final vcf and its index
-        SqwFile finalVcf = this.createOutputFile(this.dataDir + outputFile + "vcf.gz", VCF_GZIPPED_METATYPE, manualOutput);
-        SqwFile finalVcfTbi = this.createOutputFile(this.dataDir + outputFile + "vcf.gz.tbi", TBI_INDEX_METATYPE, manualOutput);
-
-        this.attachCVterms(finalVcf,    EDAM, "VCF,SNP,Variant Calling,Sequence variation analysis");
-        this.attachCVterms(finalVcfTbi, EDAM, "tabix,Sequence variation analysis");
-
-        // We produce total of two files, vcf and the index
-        postprocessVcf.addFile(finalVcf);
-        postprocessVcf.addFile(finalVcfTbi);
-
     }
 
     //=======================Jobs as functions===================
@@ -348,7 +359,6 @@ public class VariantMergingWorkflow extends SemanticWorkflow {
      *
      * @param inputs
      * @param outputFile
-     * @param priorityIndex
      * @return
      */
     protected Job combineVcf(Map<String, String> inputs, String outputFile) {
