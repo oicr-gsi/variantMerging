@@ -1,18 +1,20 @@
 {
-    "defaultDescription": "VariantMergingDecider test",
-    "defaultMetricsResources": "/expected_output/development/",
-    "defaultParameters": {
-        "--before-date": "2015-12-13"
+    "defaults": {
+        "description": "VariantMergingDecider test",
+        "metricsResources": "/expected_output/development/",
+        "parameters": {
+            "--before-date": "2015-12-13"
+        },
+        "iniExclusions": ["parent-accessions", "workflow_run_accession", "workflow-run-accession",
+            "unique_string", "parent_accessions", "parent_accession", "input_file",
+            "input_files", "workflow_bundle_dir", "output_prefix"]
     },
-    "defaultIniExclusions": ["parent-accessions", "workflow_run_accession", "workflow-run-accession",
-        "unique_string", "parent_accessions", "parent_accession", "input_file",
-        "input_files", "workflow_bundle_dir", "output_prefix"],
     "tests": [
         {
             "id": "FAP_0010_Sampletest1",
             "parameters": {
                 "--root-sample-name": "FAP_0010",
-                "--template-type":  "EX",
+                "--template-type": "EX",
                 "--meta-types": "application/vcf-4-gzip",
                 "--variant-callers": "mutect,strelka"
             }
