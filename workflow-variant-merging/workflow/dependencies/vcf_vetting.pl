@@ -39,9 +39,6 @@ if (! $input || !-e $input || !$output || ($opts{infiles} && !$opts{index})) { d
 
 die "Need some input to work with" if ! -e $input;
 
-### Define canonical chromosomes
-my %chroms = map{"chr".$_ => 1} (1..22,"X","Y","M");
-
 ### Check if we have infiles and if yes, there are two of them
 my $formats = {};
 
@@ -55,6 +52,7 @@ if ($opts{infiles}) {
 my %vcf=%{load_vcf($input)};
 my $imputeGT;
 print STDERR scalar(keys %vcf)." entries loaded from input vcf files\n" if DEBUG;
+print STDERR scalar(keys %{$vcf{calls}})." Calls loaded\n" if DEBUG;
 
 #### these are header lines that need to be removed
 
@@ -182,7 +180,7 @@ sub load_vcf{
 
 			} else {### the data records ##########################
 				my @f=split /\t/;
-                                if ($opts{canonical} && !$chroms{$f[0]}) { next; }
+                                if ($opts{canonical} && ($f[0]=~/^chr/ && $f[0]=~/_/)) { next; } # Not clear how to deal with non-canonical chroms in model organisms (mouse?)
 				my $call  = join(":",@f[0,1,3,4]);
 
                                 ### Disambiguate FORMAT fields if we have infiles
@@ -202,15 +200,17 @@ sub load_vcf{
                                     my ($norm,$tumor) = $f[7]=~/SGT=(.*?)->(.*?);/;
                                     my ($gt_norm,$gt_tumor);
                                     
-                                    if ($class eq "indel") {
-                                     $gt_norm  = $norm eq "ref" ? "0/0" : $norm eq "het" ? "0/1" : "1/1";
-                                     $gt_tumor = $tumor eq "ref" ? "0/0" : $tumor eq "het" ? "0/1" : "1/1";
-                                    } else {
-                                     $gt_norm  = "0";
-                                     $gt_tumor = "."; # snv produced by MuTect are 0/1 calls 
+                                    if ($norm && $tumor) {
+                                     if ($class eq "indel") {
+                                      $gt_norm  = $norm eq "ref" ? "0/0" : $norm eq "het" ? "0/1" : "1/1";
+                                      $gt_tumor = $tumor eq "ref" ? "0/0" : $tumor eq "het" ? "0/1" : "1/1";
+                                     } else {
+                                      $gt_norm  = "0";
+                                      $gt_tumor = "."; # snv produced by MuTect are 0/1 calls 
+                                     }
+                                     $f[9]  = join(":", ($gt_norm, $f[9]));
+                                     $f[10] = join(":", ($gt_tumor,$f[10]));
                                     }
-                                    $f[9]  = join(":", ($gt_norm, $f[9]));
-                                    $f[10] = join(":", ($gt_tumor,$f[10]));
                                     
                                 }
 
