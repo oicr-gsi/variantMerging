@@ -20,7 +20,7 @@
       "gatk_dir" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.1/bin/GenomeAnalysisTK-3.4-46/",
       "group_id" : "NA",
       "group_id_description" : "NA",
-      "identifier" : "FAP_0010_Li_P_PE_306_EX",
+      "identifier" : "FAP_0010_Li_R_PE_356_EX",
       "input_sources" : "mutect,haplotype_caller",
       "java" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.1/bin/jre1.7.0_51/bin/java",
       "manual_output" : "false",
@@ -37,28 +37,34 @@
     "files" : [ {
       "studyTitle" : [ "FAP" ],
       "studyAttributes" : {
-        "study.geo_lab_group_id" : [ [ "199" ] ]
+        "geo_lab_group_id" : [ [ "199" ] ]
       },
-      "experimentName" : [ "Geo_FAP_ILLUMINA_EX_{F*126}{..}{R*126}" ],
+      "experimentName" : [ ],
       "experimentAttributes" : { },
       "sampleName" : [ "FAP_0010_Li_P_PE_306_EX", "FAP_0010_Li_P_PE_359_EX", "FAP_0010_Li_R_PE_356_EX" ],
       "sampleAttributes" : {
-        "sample.geo_library_source_template_type" : [ [ "EX" ] ],
-        "sample.geo_prep_kit" : [ [ "Agilent SureSelect XT" ] ],
-        "sample.geo_run_id_and_position_and_slot" : [ [ "2273_4_2" ], [ "2273_5_2", "2275_2_1" ], [ "2273_6_2", "2275_3_1" ] ],
-        "sample.geo_targeted_resequencing" : [ [ "SureSelect v4" ] ],
-        "sample.geo_template_id" : [ [ "76897" ], [ "77055" ], [ "77056" ] ],
-        "sample.geo_template_type" : [ [ "Illumina PE Library Seq" ] ],
-        "sample.geo_tissue_origin" : [ [ "Li" ] ],
-        "sample.geo_tissue_type" : [ [ "P" ], [ "R" ] ]
+        "geo_external_name" : [ [ "94360-001" ] ],
+        "geo_group_id" : [ [ "1" ], [ "2" ] ],
+        "geo_library_source_template_type" : [ [ "EX" ] ],
+        "geo_organism" : [ [ "Homo sapiens" ] ],
+        "geo_prep_kit" : [ [ "Agilent SureSelect XT" ] ],
+        "geo_purpose" : [ [ "Library", "Stock" ] ],
+        "geo_receive_date" : [ [ "2015-03-18" ] ],
+        "geo_run_id_and_position_and_slot" : [ [ "2273_4_2" ], [ "2273_5_2", "2275_2_1" ], [ "2273_6_2", "2275_3_1" ] ],
+        "geo_str_result" : [ [ "Not Submitted" ] ],
+        "geo_targeted_resequencing" : [ [ "SureSelect v4" ] ],
+        "geo_template_id" : [ [ "75196", "75218", "75277", "76881", "76897" ], [ "75196", "75219", "75278", "77040", "77055" ], [ "75196", "75220", "75279", "77041", "77056" ] ],
+        "geo_template_type" : [ [ "Identity", "Illumina PE Library", "Illumina PE Library Seq", "gDNA" ] ],
+        "geo_tissue_origin" : [ [ "Li" ] ],
+        "geo_tissue_type" : [ [ "P" ], [ "R" ] ]
       },
       "sequencerRunName" : [ "150508_D00343_0086_BC6U94ANXX", "150512_D00355_0085_AC710WANXX" ],
       "sequencerRunAttributes" : {
-        "sequencerrun.geo_instrument_run_id" : [ [ "2273" ], [ "2275" ] ]
+        "geo_instrument_run_id" : [ [ "2273" ], [ "2275" ] ]
       },
       "laneName" : [ "150508_D00343_0086_BC6U94ANXX_lane_4", "150508_D00343_0086_BC6U94ANXX_lane_5", "150508_D00343_0086_BC6U94ANXX_lane_6", "150512_D00355_0085_AC710WANXX_lane_2", "150512_D00355_0085_AC710WANXX_lane_3" ],
       "laneAttributes" : {
-        "lane.geo_lane" : [ [ "2" ], [ "3" ], [ "4" ], [ "5" ], [ "6" ] ]
+        "geo_lane" : [ [ "2" ], [ "3" ], [ "4" ], [ "5" ], [ "6" ] ]
       },
       "iusTag" : [ "AATCCGTC", "GTCTGTCA", "GTGTTCTA" ],
       "iusAttributes" : { },
@@ -67,7 +73,7 @@
       "processingAttributes" : { },
       "fileMetaType" : [ "application/vcf-4-gzip" ],
       "fileAttributes" : {
-        "file.variant_caller" : [ [ "UNIFIED_GENOTYPER" ] ]
+        "variant_caller" : [ [ "UNIFIED_GENOTYPER" ] ]
       },
       "fileId" : -931648579
     } ]

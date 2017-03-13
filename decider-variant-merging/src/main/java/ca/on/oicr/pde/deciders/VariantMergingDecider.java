@@ -34,7 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import com.sun.org.apache.xalan.internal.xsltc.compiler.util.Util;
 import net.sourceforge.seqware.common.hibernate.FindAllTheFiles.Header;
 import net.sourceforge.seqware.common.module.ReturnValue;
@@ -48,11 +47,6 @@ public class VariantMergingDecider extends OicrDecider {
     private Map<String, BeSmall> fileSwaToSmall;
     private List<String> variantCallers = null;
 
-    private String output_prefix = "./";
-    private String output_dir = "seqware-results";
-    private String manual_output = "false";
-
-    private String queue = " ";
     private String sampleName = "NA";
     private String referenceFasta = "";
 
@@ -74,24 +68,14 @@ public class VariantMergingDecider extends OicrDecider {
         fileSwaToSmall = new HashMap<String, BeSmall>();
         vcfList        = new HashMap<String, vcfChecker>();
         parser.acceptsAll(Arrays.asList("ini-file"), "Optional: the location of the INI file.").withRequiredArg();
-        parser.accepts("study-name", "Optional*. Set the study name "
-                + "will define the scope of the data").withRequiredArg();
-        parser.accepts("manual-output", "Optional*. Set the manual output "
-                + "either to true or false").withRequiredArg();
         parser.accepts("template-type", "Optional. Set the template type to limit the workflow run "
                 + "so that it runs on data only of this template type").withRequiredArg();
         parser.accepts("variant-type", "Optional: specify the type of calls (snv, indels) to limit the analysis to this call type").withRequiredArg();
-        parser.accepts("output-path", "Optional: the path where the files should be copied to "
-                + "after analysis. Corresponds to output-prefix in INI file. Default: ./").withRequiredArg();
-        parser.accepts("output-folder", "Optional: the name of the folder to put the output into relative to "
-                + "the output-path. Corresponds to output-dir in INI file. Default: seqware-results").withRequiredArg();
         parser.accepts("reference-fasta", "Optional: Reference assembly in fasta format. Default is UCSC hg19_random.fa").withRequiredArg();
-        parser.accepts("queue", "Optional: Set the queue (Default: not set)").withRequiredArg();
         parser.accepts("do-intersect", "Optional: Emit only variants called by two SNV callers").withRequiredArg();
         parser.accepts("do-collapse", "Optional: Collapse 4-columns prouced by CombineVariants into two columns (enabled by default)").withRequiredArg();
         parser.accepts("pass-only", "Optional: Output only PASS calls in the overlap vcf (enabled by default)").withRequiredArg();
         parser.accepts("variant-callers", "Optional: Comma-separated list of names for two variant callers that we want to extract data for").withRequiredArg();
-        parser.accepts("verbose", "Optional: Enable verbose Logging").withRequiredArg();
     }
 
     @Override
@@ -119,12 +103,6 @@ public class VariantMergingDecider extends OicrDecider {
             Log.error("group-by parameter passed, but this decider does not allow overriding the default grouping (by FILE_SWA)");
         }
 
-        if (this.options.has("queue")) {
-            this.queue = options.valueOf("queue").toString();
-        } else {
-            this.queue = " ";
-        }
-
         if (this.options.has("template-type")) {
             this.templateTypeFilter = options.valueOf("template-type").toString();
             Log.debug("Setting template type is not necessary, however if set the decider will run the workflow only on this type of data");
@@ -133,26 +111,6 @@ public class VariantMergingDecider extends OicrDecider {
         if (this.options.has("variant-type")) {
             this.variantFilter = options.valueOf("variant-type").toString();
             Log.debug("Setting variant type is not necessary, however if set the decider will run the workflow only on this type of data");
-        }
-
-        if (this.options.has("manual-output")) {
-            this.manual_output = options.valueOf("manual_output").toString();
-            Log.debug("Setting manual output, default is false and needs to be set only in special cases");
-        }
-
-        if (this.options.has("verbose")) {
-            Log.setVerbose(true);
-        }
-
-        if (this.options.has("output-path")) {
-            this.output_prefix = options.valueOf("output-path").toString();
-            if (!this.output_prefix.endsWith("/")) {
-                this.output_prefix += "/";
-            }
-        }
-
-        if (this.options.has("output-folder")) {
-            this.output_dir = options.valueOf("output-folder").toString();
         }
 
         if (this.options.has("reference-fasta")) {
@@ -386,21 +344,15 @@ public class VariantMergingDecider extends OicrDecider {
             }
         }
 
-        Map<String, String> iniFileMap = new TreeMap<String, String>();
+        Map<String, String> iniFileMap = super.modifyIniFile(commaSeparatedFilePaths, commaSeparatedParentAccessions);
 
         iniFileMap.put("input_files",   inputVcfs.toString());
         iniFileMap.put("input_sources", inputSources.toString());
         iniFileMap.put("data_dir", "data");
-        iniFileMap.put("output_prefix", this.output_prefix);
-        iniFileMap.put("output_dir", this.output_dir);
         iniFileMap.put("identifier", this.sampleName);
-        iniFileMap.put("manual_output", this.manual_output);
         iniFileMap.put("collapse_vcf", Boolean.toString(this.doCollapse));
         iniFileMap.put("do_intersect", Boolean.toString(this.doIntersect));
         iniFileMap.put("pass_only", Boolean.toString(this.doFilter));
-             
-        iniFileMap.put("queue", this.queue);
-      
 
         //Note that we can use group_id, group_description and external_name for tumor bams only
         if (null != groupIds && groupIds.length() != 0 && !groupIds.toString().contains("NA")) {
