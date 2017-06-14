@@ -90,7 +90,7 @@ while(<VCF>) {
 
    if (scalar(@f) != 13) {
      print STDERR "The line has less than 13 columns, no merging\n";
-     print join("\t",@f)."\n";
+     print TMP join("\t",@f)."\n";
      next;
    }
 
