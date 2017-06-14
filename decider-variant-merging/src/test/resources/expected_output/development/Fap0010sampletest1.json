@@ -1,15 +1,15 @@
 {
-  "workflowRunCount" : 2,
+  "workflowRunCount" : 1,
   "studies" : [ "FAP" ],
   "sequencerRuns" : [ "150508_D00343_0086_BC6U94ANXX", "150512_D00355_0085_AC710WANXX" ],
   "lanes" : [ "150508_D00343_0086_BC6U94ANXX_lane_4", "150508_D00343_0086_BC6U94ANXX_lane_5", "150508_D00343_0086_BC6U94ANXX_lane_6", "150512_D00355_0085_AC710WANXX_lane_2", "150512_D00355_0085_AC710WANXX_lane_3" ],
   "samples" : [ "FAP_0010_Li_P_PE_306_EX", "FAP_0010_Li_P_PE_359_EX", "FAP_0010_Li_R_PE_356_EX" ],
-  "workflows" : [ "GATK3", "MutectStrelka" ],
+  "workflows" : [ "GATK3" ],
   "processingAlgorithms" : [ "ProvisionFiles" ],
   "fileMetaTypes" : [ "application/vcf-4-gzip" ],
   "maxInputFiles" : 1,
   "minInputFiles" : 1,
-  "totalInputFiles" : 2,
+  "totalInputFiles" : 1,
   "workflowRuns" : [ {
     "workflowIni" : {
       "collapse_vcf" : "true",
@@ -21,74 +21,6 @@
       "group_id" : "NA",
       "group_id_description" : "NA",
       "identifier" : "FAP_0010_Li_P_PE_306_EX",
-      "input_sources" : "strelka,mutect",
-      "java" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.1.2/bin/jre1.7.0_51/bin/java",
-      "manual_output" : "false",
-      "metadata" : "metadata",
-      "output_dir" : "seqware-results",
-      "pass_only" : "true",
-      "picard_dir" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.1.2/bin/picard-tools-1.140/",
-      "picard_memory" : "5000",
-      "queue" : "",
-      "ref_fasta" : "/.mounts/labs/PDE/data/gatkAnnotationResources/hg19_random.fa",
-      "tabix_version" : "0.2.6",
-      "tmp_dir" : "tmp"
-    },
-    "files" : [ {
-      "studyTitle" : [ "FAP" ],
-      "studyAttributes" : {
-        "geo_lab_group_id" : [ [ "199" ] ]
-      },
-      "experimentName" : [ ],
-      "experimentAttributes" : { },
-      "sampleName" : [ "FAP_0010_Li_P_PE_306_EX", "FAP_0010_Li_P_PE_359_EX", "FAP_0010_Li_R_PE_356_EX" ],
-      "sampleAttributes" : {
-        "geo_external_name" : [ [ "94360-001" ] ],
-        "geo_group_id" : [ [ "1" ], [ "2" ] ],
-        "geo_library_source_template_type" : [ [ "EX" ] ],
-        "geo_organism" : [ [ "Homo sapiens" ] ],
-        "geo_prep_kit" : [ [ "Agilent SureSelect XT" ] ],
-        "geo_purpose" : [ [ "Library", "Stock" ] ],
-        "geo_receive_date" : [ [ "2015-03-18" ] ],
-        "geo_run_id_and_position_and_slot" : [ [ "2273_4_2" ], [ "2273_5_2", "2275_2_1" ], [ "2273_6_2", "2275_3_1" ] ],
-        "geo_str_result" : [ [ "Not Submitted" ] ],
-        "geo_targeted_resequencing" : [ [ "SureSelect v4" ] ],
-        "geo_template_id" : [ [ "75196", "75218", "75277", "76881", "76897" ], [ "75196", "75219", "75278", "77040", "77055" ], [ "75196", "75220", "75279", "77041", "77056" ] ],
-        "geo_template_type" : [ [ "Identity", "Illumina PE Library", "Illumina PE Library Seq", "gDNA" ] ],
-        "geo_tissue_origin" : [ [ "Li" ] ],
-        "geo_tissue_type" : [ [ "P" ], [ "R" ] ]
-      },
-      "sequencerRunName" : [ "150508_D00343_0086_BC6U94ANXX", "150512_D00355_0085_AC710WANXX" ],
-      "sequencerRunAttributes" : {
-        "geo_instrument_run_id" : [ [ "2273" ], [ "2275" ] ]
-      },
-      "laneName" : [ "150508_D00343_0086_BC6U94ANXX_lane_4", "150508_D00343_0086_BC6U94ANXX_lane_5", "150508_D00343_0086_BC6U94ANXX_lane_6", "150512_D00355_0085_AC710WANXX_lane_2", "150512_D00355_0085_AC710WANXX_lane_3" ],
-      "laneAttributes" : {
-        "geo_lane" : [ [ "2" ], [ "3" ], [ "4" ], [ "5" ], [ "6" ] ]
-      },
-      "iusTag" : [ "AATCCGTC", "GTCTGTCA", "GTGTTCTA" ],
-      "iusAttributes" : { },
-      "workflowName" : [ "MutectStrelka" ],
-      "processingAlgorithm" : [ "ProvisionFiles" ],
-      "processingAttributes" : { },
-      "fileMetaType" : [ "application/vcf-4-gzip" ],
-      "fileAttributes" : {
-        "variant_caller" : [ [ "mutect-1.1.4 strelka-1.0.13" ] ],
-        "variant_type" : [ [ "snv" ] ]
-      },
-      "fileId" : -525961400
-    } ]
-  }, {
-    "workflowIni" : {
-      "collapse_vcf" : "true",
-      "data_dir" : "data",
-      "do_intersect" : "false",
-      "external_name" : "NA",
-      "gatk_dbsnp_vcf" : "/.mounts/labs/PDE/data/MutectStrelka/dbSNP/dbsnp_138.hg19.leftAligned.vcf.gz",
-      "gatk_dir" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.1.2/bin/GenomeAnalysisTK-3.4-46/",
-      "group_id" : "NA",
-      "group_id_description" : "NA",
-      "identifier" : "FAP_0010_Li_P_PE_359_EX",
       "input_sources" : "strelka,mutect",
       "java" : "${workflow_bundle_dir}/Workflow_Bundle_VariantMerging/1.1.2/bin/jre1.7.0_51/bin/java",
       "manual_output" : "false",
