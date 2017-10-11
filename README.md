@@ -4,7 +4,7 @@ a pipeline which utilizes the results of previous efforts to merge vcf files fro
 * tabix
 * picard
 
-[!vcf merging](workflow-variant-merging/docs/VariantMerging.png)
+![vcf merging](workflow-variant-merging/docs/VariantMerging.png)
 
 ### Pre-processing
 
