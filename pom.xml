@@ -1,15 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>ca.on.oicr.pde</groupId>
-    <artifactId>variant-merging</artifactId>
-    <version>1.0</version>
-    <packaging>pom</packaging>
-    <modules>
-        <module>workflow-variant-merging</module>
-        <module>decider-variant-merging</module>
-    </modules>
+
+    <parent>
+        <groupId>ca.on.oicr.gsi</groupId>
+        <artifactId>pipedev-niassa-cromwell-parent</artifactId>
+        <version>2.5.15</version>
+        <relativePath/>
+    </parent>
+
+    <artifactId>variantMerging</artifactId>
+    <version>2.0</version>
+    <packaging>jar</packaging>
+
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <workflow-description>Workflow for merging vcf files.</workflow-description>
+        <wdl-workflow>variantMerging.wdl</wdl-workflow>
+        <test-definition>tests.json</test-definition>
     </properties>
+
 </project>

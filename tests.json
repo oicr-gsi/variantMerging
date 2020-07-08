@@ -1,0 +1,50 @@
+{
+  "defaults": {
+    "description": "variantMerging workflow test",
+    "metrics_calculate": "calculate.sh",
+    "metrics_compare": "compare.sh",
+    "output_metrics_dir": "/.mounts/labs/gsi/testdata/variantMerging/output_metrics/",
+    "parameters": {
+          "wdl_options": {
+            "write_to_cache": false,
+            "read_from_cache": false
+           }
+         }
+  },
+  "tests": [
+    { 
+      "id": "TEST_MS",
+      "parameters": {
+        "wdl_inputs": {
+          "variantMerging.inputNormal": "/.mounts/labs/gsi/testdata/variantMerging/normal_sorted.bam",
+          "variantMerging.outputFileNamePrefix": "TESTRUN",
+          "variantMerging.inputTumor": "/.mounts/labs/gsi/testdata/variantMerging/tumor_sorted.bam",
+          "variantMerging.runHMMcopy.modules": "variantMerging/1.28.1 hmmcopy-scripts/1.0 rstats-cairo/3.6",
+          "variantMerging.runHMMcopy.cgFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/gc_hg18_chr22.wig",
+          "variantMerging.runHMMcopy.mapFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/map_hg18_chr22.wig"
+          }
+      },
+      "id": "TEST_GATK",
+      "parameters": {
+        "wdl_inputs": {
+          "variantMerging.inputNormal": "/.mounts/labs/gsi/testdata/variantMerging/normal_sorted.bam",
+          "variantMerging.outputFileNamePrefix": "TESTRUN",
+          "variantMerging.inputTumor": "/.mounts/labs/gsi/testdata/variantMerging/tumor_sorted.bam",
+          "variantMerging.runHMMcopy.modules": "variantMerging/1.28.1 hmmcopy-scripts/1.0 rstats-cairo/3.6",
+          "variantMerging.runHMMcopy.cgFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/gc_hg18_chr22.wig",
+          "variantMerging.runHMMcopy.mapFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/map_hg18_chr22.wig"
+          }
+      },
+      "id": "TEST_GATK_COLLAPSE",
+      "parameters": {
+        "wdl_inputs": {
+          "variantMerging.inputNormal": "/.mounts/labs/gsi/testdata/variantMerging/normal_sorted.bam",
+          "variantMerging.outputFileNamePrefix": "TESTRUN",
+          "variantMerging.inputTumor": "/.mounts/labs/gsi/testdata/variantMerging/tumor_sorted.bam",
+          "variantMerging.runHMMcopy.modules": "variantMerging/1.28.1 hmmcopy-scripts/1.0 rstats-cairo/3.6",
+          "variantMerging.runHMMcopy.cgFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/gc_hg18_chr22.wig",
+          "variantMerging.runHMMcopy.mapFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/map_hg18_chr22.wig"
+    }
+  ]
+}
+
