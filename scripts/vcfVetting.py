@@ -71,7 +71,7 @@ for c in vcf_reader.contigs:
 header_lines.append("##reference=" + vcf_reader.metadata['reference'] + "\n")
 inputHash = {}
 if 'inputs' in vcf_reader.metadata.keys():
-    header_lines.append("##inputs=" + vcf_reader.metadata['inputs'] + "\n")
+    header_lines.append("##inputs=" + " ".join(vcf_reader.metadata['inputs']) + "\n")
     for s in vcf_reader.metadata['inputs'][0].split(" "):
         keyValuePair = s.split(":")
         inputHash.update({keyValuePair[1]: keyValuePair[0]})
