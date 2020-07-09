@@ -71,12 +71,19 @@ for c in vcf_reader.contigs:
 header_lines.append("##reference=" + vcf_reader.metadata['reference'] + "\n")
 inputHash = {}
 if 'inputs' in vcf_reader.metadata.keys():
+    header_lines.append("##inputs=" + vcf_reader.metadata['inputs'] + "\n")
     for s in vcf_reader.metadata['inputs'][0].split(" "):
         keyValuePair = s.split(":")
         inputHash.update({keyValuePair[1]: keyValuePair[0]})
     sampleList = list(inputHash.values())
     if sampleList[0] != 'NORMAL':
         swap_nt = True
+
+# mutect2 - specific SAMPLE field:
+if 'SAMPLE' in vcf_reader.metadata.keys():
+    for s in vcf_reader.metadata['SAMPLE']:
+        header_lines.append("##SAMPLE=<ID=" + s['ID'] + ",SampleName=" + s['SampleName'] +
+                            ",File=" + s['File'] + ">\n")
 
 if len(vcf_reader.samples) == 2 and vcf_reader.samples[0] != 'NORMAL' and len(inputHash) == 0:
     swap_nt = True
