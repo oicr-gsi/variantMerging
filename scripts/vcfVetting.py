@@ -23,6 +23,15 @@ header_fields = ['CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', '
 header_lines = ["##fileformat=" + vcf_reader.metadata['fileformat'] + "\n"]
 
 '''
+    vcf 4.2 specs: special character handling
+'''
+def _special_character(f):
+    switcher = {-1: 'A',
+                -2: 'G',
+                -3: 'R'}
+    return switcher[f] if f in switcher.keys() else '.'
+
+'''
 
    Process header lines:
  * Check for GT FORMAT, it needs to be present
@@ -31,7 +40,6 @@ header_lines = ["##fileformat=" + vcf_reader.metadata['fileformat'] + "\n"]
  * Do not use any lines other than specified
 
 '''
-
 
 for f in vcf_reader.filters:
     header_lines.append("##FILTER=<ID=" + vcf_reader.filters[f].id +
@@ -43,6 +51,8 @@ for m in vcf_reader.formats:
     num = vcf_reader.formats[m].num
     if vcf_reader.formats[m].num is None:
         num = '.'
+    elif vcf_reader.formats[m].num < 0:
+        num = _special_character(vcf_reader.formats[m].num)
     if vcf_reader.formats[m].id == 'GT':
         add_gt = False
     header_lines.append("##FORMAT=<ID=" + vcf_reader.formats[m].id +
@@ -70,6 +80,9 @@ for c in vcf_reader.contigs:
 
 header_lines.append("##reference=" + vcf_reader.metadata['reference'] + "\n")
 inputHash = {}
+'''
+    Preserve metadata for inputs
+'''
 if 'inputs' in vcf_reader.metadata.keys():
     header_lines.append("##inputs=" + " ".join(vcf_reader.metadata['inputs']) + "\n")
     for s in vcf_reader.metadata['inputs'][0].split(" "):
@@ -78,7 +91,6 @@ if 'inputs' in vcf_reader.metadata.keys():
     sampleList = list(inputHash.values())
     if sampleList[0] != 'NORMAL':
         swap_nt = True
-
 # mutect2 - specific SAMPLE field:
 if 'SAMPLE' in vcf_reader.metadata.keys():
     for s in vcf_reader.metadata['SAMPLE']:
@@ -94,7 +106,6 @@ else:
     header_fields.extend(vcf_reader.samples if not swap_nt else reversed(vcf_reader.samples))
 header_lines.append("#" + "\t".join(header_fields) + "\n")
 
-
 '''
     Definitions for helper subroutines which 
   * Process NT/SGT fields from strelka an generate GT
@@ -106,7 +117,6 @@ def _sgtToGt(formatString, ref, alt):
     gt_norm = '0/0' if sgtStrings[0] == ref + ref else '1/1' if sgtStrings[0] == alt + alt else '0/1'
     gt_tumor = '0/0' if sgtStrings[1] == ref + ref else '1/1' if sgtStrings[1] == alt + alt else '0/1'
     return [gt_norm, gt_tumor]
-
 
 def _tumor_normal_genotypes(ref, alt, info):
     """Retrieve standard 0/0, 0/1, 1/1 style genotypes from INFO field.
@@ -162,7 +172,6 @@ def _tumor_normal_genotypes(ref, alt, info):
         tumor_gt = alleles_to_gt(sgt_val)
     return tumor_gt, normal_gt
 
-
 def _generate_ad(ref, alt, samples):
     """Retrieve allele reads and generate AD in form of REF_count,ALT1_count,ALT2_count etc.
     ref: The REF allele from a VCF line
@@ -180,7 +189,6 @@ def _generate_ad(ref, alt, samples):
     return_values = [ref_values, alt_values] if record.samples[0].sample == 'NORMAL' else [alt_values, ref_values]
     return return_values
 
-
 '''
       Process Records:
     * For records, make sure we have GT field properly formatted if we have SGT (strelka-specific)
@@ -197,14 +205,18 @@ for record in vcf_reader:
     idString = "." if record.ID is None else record.ID
     qString = "." if record.QUAL is None else record.QUAL
     altString = ",".join(map(str, '.' if record.ALT[0] is None else record.ALT))
-    filtString = "PASS" if len(record.FILTER) == 0 else ",".join(record.FILTER)
+    filtString = "PASS" if len(record.FILTER) == 0 else ";".join(record.FILTER)
     record_data.extend([idString, record.REF, altString, qString, filtString])
 
     # Process INFO values
     info_data = []
     for field in record.INFO:
-        info_data.append("=".join([field, '.' if record.INFO[field] is None else str(record.INFO[field])]))
-    record_data.append(";".join(info_data))
+        if isinstance(record.INFO[field], list):
+            info_data.append("=".join([field, ",".join(map(str, record.INFO[field]))]))
+        else:
+            info_data.append("=".join([field, "." if record.INFO[field] is None else str(record.INFO[field])]))
+    info_string = ";".join(info_data) if len(info_data) > 0 else "."
+    record_data.append(info_string)
 
     # Add FORMAT keys
     format_data = ['GT:AD'] if add_gt else []
