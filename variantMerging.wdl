@@ -87,6 +87,7 @@ parameter_meta {
 }
 
 command <<<
+ set -euxo pipefail
  python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_processed.vcf -r ~{referenceId}
  bgzip -c ~{basename(vcfFile, '.vcf.gz')}_processed.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
  tabix -p vcf ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
@@ -174,6 +175,7 @@ parameter_meta {
 }
 
 command <<<
+  set -euxo pipefail
   python3<<CODE
   import os
   inputStrings = []
