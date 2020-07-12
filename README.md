@@ -1,64 +1,97 @@
 # Variant Merging
-a pipeline which utilizes the results of previous efforts to merge vcf files from different somatic callers (MuTect and Strelka)
-* GATK
-* tabix
-* picard
-
-![vcf merging](workflow-variant-merging/docs/VariantMerging.png)
+VariantMerging 2.0, a workflow for combining variant calls from SNV analyses done with different callers
 
 ### Pre-processing
 
 The script used at this step performs the following tasks:
 
 * removes non-canonical contigs
-* adds GT field (dot or calculated based on SGT, if available)
+* adds GT and AD fields (dot or calculated based on NT, SGT, if available)
 * removes tool-specific header lines
-* injects OICR DCC-specific headers
 
-### Updating Sequence Dictionary and Sorting Vcf
+## Overview
 
-At this step we use picard tools (Broad Institute) to update sequence dictionary using provided reference file (hg19_random.fa) and sort variants according to contig order in the reference.
-Combining Variants
+## Dependencies
 
-We use GATK (Broad Institute) to combine variants using UNIQUIFY option. Given two vcf files with NORMAL/TUMOR columns GATK will produce a vcf with four data columns, two normals and two tumors.
-Optional Intersection
+* [java 8](https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_x64_linux_8u222b10.tar.gz)
+* [tabix 0.2.6](https://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2)
+* [gatk 4.1.7.0, gatk 3.6.0](https://gatk.broadinstitute.org)
 
-Optionally, we can ask to produce an additional vcf with concordant variants only. Normally, a user should not enable this step as the Combining step will mark source-specific variants as well as concordant ones.
 
-### Post-Processing
+## Usage
 
-Post-processing step optionally collapses the vcf into 2-column  (having NORMAL and TUMOR columns) vcf. The rules are simple: there should be no collision of fields, we just need to to take first two data columns (NORMAL) and merge the values + take the last two columns (TUMOR) and merge those too. Flag that controls collapsing will be set by default outside this script. Besides, post-processing step is responsible for compressing and indexing vcf file using bgzip and tabix tools.
+### Cromwell
+```
+java -jar cromwell.jar run variantMerging.wdl --inputs inputs.json
+```
 
-## Workflow Options
+### Inputs
 
+#### Required workflow parameters:
 Parameter|Value|Description
 ---|---|---
-output_dir | seqware-results| A standard SeqWare parameter specifying the sub-directory where the output files will be provisioned
-output_prefix | ./ | A standard SeqWare parameter specifying the root directory where the output files will be moved
-manual_output | false | Whether or not to use manual output. When false, a random integer will be inserted into the path of the file in order to ensure uniqueness. When true, the output files will be moved to the location of output_prefix/output_dir
-identifier | | Identifier produced using Decider: FileAttributes.getLibrarySample() returns the necessary information
-queue | | queue on sge cluster. Normally, should not be changed but is available for customization
-ref_fasta | | reference fasta file used by GATK and Picard tools
-gatk_dir | | directory containing GATK jar (automatically constructed). Points to the bundled GATK
-gatk_dbsnp_vcf | | path to dbsnp data used by GATK
-collapse_vcf | true | Flag that determines if we want to collapse the output of CombineVcf walker (GATK) 4 columns -> 2 columns
-pass_only | true | Tells the workflow to use only PASS calls in the combined vcf
-do_intersect | false | Flag that instructs the workflow to produce an additional vcf with concordant calls (should not be set normally, but available)
-picard_memory | | Memory used by picard tools
+`inputVcfs`|Array[Pair[File,String]]|Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls).
+`preprocessVcf.referenceId`|String|String that shows the id of the reference assembly
+`preprocessVcf.preprocessScript`|String|path to preprocessing script
+`preprocessVcf.modules`|String|modules for running preprocessing
+`mergeVcfs.modules`|String|modules for this task
+`combineVariants.referenceFasta`|String|path to the reference FASTA file
+`combineVariants.modules`|String|modules for running preprocessing
 
-## Decider Options
 
-Parameter|Value|Description
+#### Optional workflow parameters:
+Parameter|Value|Default|Description
+---|---|---|---
+`outputFileNamePrefix`|String|""|Output prefix to prefix output file names with.
+
+
+#### Optional task parameters:
+Parameter|Value|Default|Description
+---|---|---|---
+`preprocessVcf.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
+`preprocessVcf.timeout`|Int|10|timeout in hours
+`mergeVcfs.timeout`|Int|20|timeout in hours
+`mergeVcfs.jobMemory`|Int|12|Allocated memory, in GB
+`combineVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
+`combineVariants.timeout`|Int|20|timeout in hours
+
+
+### Outputs
+
+Output | Type | Description
 ---|---|---
-output-path | ./ | Optional: the path where the files should be copied to after analysis. Corresponds to output-prefix in .ini file
-output-folder | seqware-results | Optional: the name of the folder to put the output into relative to the output-path. Corresponds to output-dir in INI file.
-queue | | Optional: Set the queue for workflow's jobs on sge cluster
-manual-output | false | Optional, Set the manual output either to true or false
-template-type | | Optional. Set the template type to limit the workflow runs so that it runs on data only of this template type
-variant-type | | Optional: specify the type of calls (snv, indels) to limit the analysis to this call type
-reference-fasta | | Optional: Reference assembly in fasta format.
-Do-intersect | true | Optional: Emit variants called by two SNV callers in addition to the full set of calls
-do-collapse | true | Optional: Collapse 4-columns produced by CombineVariants into two columns
-pass-only | true | Optional:  Output PASS calls only for the overlap
-variant-callers | | Optional: Comma-separated list of names for two variant callers that we want to use for merging
-verbose | | Enable Verbose Logging
+`mergedVcf`|File|vcf file containing all structural variant calls
+`mergedIndex`|File|tabix index of the vcf file containing all structural variant calls
+`combinedVcf`|File|filtered vcf file containing all structural variant calls
+`combinedIndex`|File|tabix index of the filtered vcf file containing all structural variant calls
+
+
+## Niassa + Cromwell
+
+This WDL workflow is wrapped in a Niassa workflow (https://github.com/oicr-gsi/pipedev/tree/master/pipedev-niassa-cromwell-workflow) so that it can used with the Niassa metadata tracking system (https://github.com/oicr-gsi/niassa).
+
+* Building
+```
+mvn clean install
+```
+
+* Testing
+```
+mvn clean verify \
+-Djava_opts="-Xmx1g -XX:+UseG1GC -XX:+UseStringDeduplication" \
+-DrunTestThreads=2 \
+-DskipITs=false \
+-DskipRunITs=false \
+-DworkingDirectory=/path/to/tmp/ \
+-DschedulingHost=niassa_oozie_host \
+-DwebserviceUrl=http://niassa-url:8080 \
+-DwebserviceUser=niassa_user \
+-DwebservicePassword=niassa_user_password \
+-Dcromwell-host=http://cromwell-url:8000
+```
+
+## Support
+
+For support, please file an issue on the [Github project](https://github.com/oicr-gsi) or send an email to gsi@oicr.on.ca .
+
+_Generated with generate-markdown-readme (https://github.com/oicr-gsi/gsi-wdl-tools/)_

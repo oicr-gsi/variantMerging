@@ -16,34 +16,77 @@
       "id": "TEST_MS",
       "parameters": {
         "wdl_inputs": {
-          "variantMerging.inputNormal": "/.mounts/labs/gsi/testdata/variantMerging/normal_sorted.bam",
-          "variantMerging.outputFileNamePrefix": "TESTRUN",
-          "variantMerging.inputTumor": "/.mounts/labs/gsi/testdata/variantMerging/tumor_sorted.bam",
-          "variantMerging.runHMMcopy.modules": "variantMerging/1.28.1 hmmcopy-scripts/1.0 rstats-cairo/3.6",
-          "variantMerging.runHMMcopy.cgFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/gc_hg18_chr22.wig",
-          "variantMerging.runHMMcopy.mapFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/map_hg18_chr22.wig"
-          }
-      },
-      "id": "TEST_GATK",
+          "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+          "variantMerging.preprocessVcf.referenceId": "hg19",
+          "variantMerging.preprocessVcf.modules": "varmerge-scripts/1.3 tabix/0.2.6",
+          "variantMerging.combineVariants.modules": "gatk/3.6-0 tabix/0.2.6 hg19/p13",
+          "variantMerging.mergeVcfs.modules": "gatk/4.1.7.0 tabix/0.2.6",
+          "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+          "variantMerging.outputFileNamePrefix": "TEST-M2S",
+          "variantMerging.inputVcfs": [
+             {
+              "Left":   "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+              "Right": "strelka"
+             },
+             {
+              "Left":  "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
+              "Right": "mutect2"
+             }
+          ]
+        }
+      }
+    },
+    {
+      "id": "TEST_M2S",
       "parameters": {
         "wdl_inputs": {
-          "variantMerging.inputNormal": "/.mounts/labs/gsi/testdata/variantMerging/normal_sorted.bam",
-          "variantMerging.outputFileNamePrefix": "TESTRUN",
-          "variantMerging.inputTumor": "/.mounts/labs/gsi/testdata/variantMerging/tumor_sorted.bam",
-          "variantMerging.runHMMcopy.modules": "variantMerging/1.28.1 hmmcopy-scripts/1.0 rstats-cairo/3.6",
-          "variantMerging.runHMMcopy.cgFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/gc_hg18_chr22.wig",
-          "variantMerging.runHMMcopy.mapFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/map_hg18_chr22.wig"
-          }
-      },
-      "id": "TEST_GATK_COLLAPSE",
+          "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+          "variantMerging.preprocessVcf.referenceId": "hg19",
+          "variantMerging.preprocessVcf.modules": "varmerge-scripts/1.3 tabix/0.2.6",
+          "variantMerging.combineVariants.modules": "gatk/3.6-0 tabix/0.2.6 hg19/p13",
+          "variantMerging.mergeVcfs.modules": "gatk/4.1.7.0 tabix/0.2.6",
+          "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+          "variantMerging.outputFileNamePrefix": "TEST-MS",
+          "variantMerging.inputVcfs": [
+             {
+              "Left":   "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+              "Right": "strelka"
+             },
+             {
+              "Left":  "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
+              "Right": "mutect"
+             }
+          ]
+        }
+      }
+    },
+    {
+      "id": "TEST_MULTI",
       "parameters": {
         "wdl_inputs": {
-          "variantMerging.inputNormal": "/.mounts/labs/gsi/testdata/variantMerging/normal_sorted.bam",
-          "variantMerging.outputFileNamePrefix": "TESTRUN",
-          "variantMerging.inputTumor": "/.mounts/labs/gsi/testdata/variantMerging/tumor_sorted.bam",
-          "variantMerging.runHMMcopy.modules": "variantMerging/1.28.1 hmmcopy-scripts/1.0 rstats-cairo/3.6",
-          "variantMerging.runHMMcopy.cgFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/gc_hg18_chr22.wig",
-          "variantMerging.runHMMcopy.mapFile": "/.mounts/labs/gsi/testdata/variantMerging/hmmcopy_data/map_hg18_chr22.wig"
+          "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+          "variantMerging.preprocessVcf.referenceId": "hg19",
+          "variantMerging.preprocessVcf.modules": "varmerge-scripts/1.3 tabix/0.2.6",
+          "variantMerging.combineVariants.modules": "gatk/3.6-0 tabix/0.2.6 hg19/p13",
+          "variantMerging.mergeVcfs.modules": "gatk/4.1.7.0 tabix/0.2.6",
+          "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+          "variantMerging.outputFileNamePrefix": "TEST-M2S",
+          "variantMerging.inputVcfs": [
+             {
+              "Left":  "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+              "Right": "strelka"
+             },
+             {
+              "Left":  "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
+              "Right": "mutect2"
+             },
+             {
+              "Left":  "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
+              "Right": "mutect"
+             }
+          ]
+        } 
+      }
     }
   ]
 }
