@@ -13,7 +13,7 @@
   },
   "tests": [
     { 
-      "id": "TEST_MS",
+      "id": "TEST_M2S",
       "parameters": {
         "wdl_inputs": {
           "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
@@ -37,7 +37,7 @@
       }
     },
     {
-      "id": "TEST_M2S",
+      "id": "TEST_MS",
       "parameters": {
         "wdl_inputs": {
           "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",

@@ -128,11 +128,7 @@ parameter_meta {
 }
 
 command <<<
- set -euxo pipefail
  gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
- if [ -e ~{outputPrefix}_mergedVcfs.vcf.gz && !-e ~{outputPrefix}_mergedVcfs.vcf.gz.tbi ]; then
-    tabix -p vcf ~{outputPrefix}_mergedVcfs.vcf.gz
- fi
 >>>
 
 runtime {
@@ -175,7 +171,6 @@ parameter_meta {
 }
 
 command <<<
-  set -euxo pipefail
   python3<<CODE
   import os
   inputStrings = []
@@ -202,10 +197,6 @@ command <<<
   res_string = os.popen(gatkCommand + " 2>&1").read()
   print(res_string)
   CODE
-
-  if [ -e ~{outputPrefix}_combined.vcf.gz && !-e ~{outputPrefix}_combined.vcf.gz.tbi ]; then
-    tabix -p vcf ~{outputPrefix}_combined.vcf.gz
-  fi
 >>>
 
 runtime {
