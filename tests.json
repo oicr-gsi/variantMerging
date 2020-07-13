@@ -25,11 +25,11 @@
           "variantMerging.outputFileNamePrefix": "TEST-M2S",
           "variantMerging.inputVcfs": [
              {
-              "Left":   "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+              "Left":   "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
               "Right": "strelka"
              },
              {
-              "Left":  "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
+              "Left":  "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
               "Right": "mutect2"
              }
           ]
@@ -49,11 +49,11 @@
           "variantMerging.outputFileNamePrefix": "TEST-MS",
           "variantMerging.inputVcfs": [
              {
-              "Left":   "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+              "Left":   "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
               "Right": "strelka"
              },
              {
-              "Left":  "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
+              "Left":  "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
               "Right": "mutect"
              }
           ]
@@ -73,15 +73,15 @@
           "variantMerging.outputFileNamePrefix": "TEST-M2S",
           "variantMerging.inputVcfs": [
              {
-              "Left":  "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+              "Left":  "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
               "Right": "strelka"
              },
              {
-              "Left":  "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
+              "Left":  "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
               "Right": "mutect2"
              },
              {
-              "Left":  "/u/pruzanov/Projects/GSI/WDL/VariantMerging/data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
+              "Left":  "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
               "Right": "mutect"
              }
           ]
