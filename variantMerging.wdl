@@ -155,6 +155,7 @@ input {
  String referenceFasta
  String outputPrefix
  String modules
+ Array[String] priority = workflows
  Int jobMemory = 12
  Int timeout = 20
 }
@@ -166,18 +167,22 @@ parameter_meta {
  referenceFasta: "path to the reference FASTA file"
  outputPrefix: "prefix for output file"
  modules: "modules for running preprocessing"
+ priority: "Comma-separated list defining priority of workflows when combining variants"
  jobMemory: "memory allocated to preprocessing, in GB"
  timeout: "timeout in hours"
 }
 
 command <<<
   python3<<CODE
-  import os
+  import subprocess
+  import sys
   inputStrings = []
   v = "~{sep=' ' inputVcfs}"
   vcfFiles = v.split()
   w = "~{sep=' ' workflows}"
   workflowIds = w.split()
+  p = "~{sep=' ' priority}"
+  priority = p.split()
   
   if len(vcfFiles) != len(workflowIds):
       print("The arrays with input files and their respective workflow names are not of equal size!")
@@ -192,10 +197,11 @@ command <<<
   gatkCommand += " -R ~{referenceFasta} "
   gatkCommand += "-o ~{outputPrefix}_combined.vcf.gz "
   gatkCommand += "-genotypeMergeOptions PRIORITIZE "
-  gatkCommand += "-priority " + "~{sep=',' workflows}"
+  gatkCommand += "-priority " + ",".join(priority)
+  gatkCommand += " 2>&1"
 
-  res_string = os.popen(gatkCommand + " 2>&1").read()
-  print(res_string)
+  result_output = subprocess.run(gatkCommand, shell=True)
+  sys.exit(result_output.returncode)
   CODE
 >>>
 

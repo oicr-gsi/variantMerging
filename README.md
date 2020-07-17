@@ -52,9 +52,9 @@ Parameter|Value|Default|Description
 `preprocessVcf.timeout`|Int|10|timeout in hours
 `mergeVcfs.timeout`|Int|20|timeout in hours
 `mergeVcfs.jobMemory`|Int|12|Allocated memory, in GB
+`combineVariants.priority`|Array[String]|workflows|Comma-separated list defining priority of workflows when combining variants
 `combineVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `combineVariants.timeout`|Int|20|timeout in hours
-
 
 ### Outputs
 
