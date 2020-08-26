@@ -11,6 +11,8 @@ The script used at this step performs the following tasks:
 
 ## Overview
 
+![vmerging flowchart](docs/VARMERGE_specs.png)
+
 ## Dependencies
 
 * [java 8](https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_x64_linux_8u222b10.tar.gz)
