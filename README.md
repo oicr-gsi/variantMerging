@@ -39,6 +39,7 @@ Parameter|Value|Description
 `mergeVcfs.modules`|String|modules for this task
 `combineVariants.referenceFasta`|String|path to the reference FASTA file
 `combineVariants.modules`|String|modules for running preprocessing
+`combineVariants.priority`|String|Comma-separated list defining priority of workflows when combining variants
 
 
 #### Optional workflow parameters:
@@ -54,7 +55,6 @@ Parameter|Value|Default|Description
 `preprocessVcf.timeout`|Int|10|timeout in hours
 `mergeVcfs.timeout`|Int|20|timeout in hours
 `mergeVcfs.jobMemory`|Int|12|Allocated memory, in GB
-`combineVariants.priority`|Array[String]|workflows|Comma-separated list defining priority of workflows when combining variants
 `combineVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `combineVariants.timeout`|Int|20|timeout in hours
 

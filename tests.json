@@ -22,6 +22,7 @@
           "variantMerging.combineVariants.modules": "gatk/3.6-0 tabix/0.2.6 hg19/p13",
           "variantMerging.mergeVcfs.modules": "gatk/4.1.7.0 tabix/0.2.6",
           "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+          "variantMerging.combineVariants.priority": "strelka,mutect2",
           "variantMerging.outputFileNamePrefix": "TEST-M2S",
           "variantMerging.inputVcfs": [
              {
@@ -46,6 +47,7 @@
           "variantMerging.combineVariants.modules": "gatk/3.6-0 tabix/0.2.6 hg19/p13",
           "variantMerging.mergeVcfs.modules": "gatk/4.1.7.0 tabix/0.2.6",
           "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+          "variantMerging.combineVariants.priority": "strelka,mutect",
           "variantMerging.outputFileNamePrefix": "TEST-MS",
           "variantMerging.inputVcfs": [
              {
@@ -70,6 +72,7 @@
           "variantMerging.combineVariants.modules": "gatk/3.6-0 tabix/0.2.6 hg19/p13",
           "variantMerging.mergeVcfs.modules": "gatk/4.1.7.0 tabix/0.2.6",
           "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+          "variantMerging.combineVariants.priority": "strelka,mutect2,mutect",
           "variantMerging.outputFileNamePrefix": "TEST-M2S",
           "variantMerging.inputVcfs": [
              {
