@@ -51,6 +51,7 @@ meta {
       combinedIndex: "tabix index of the filtered vcf file containing all structural variant calls"
     }
   
+
 }
 
 output {
@@ -155,7 +156,7 @@ input {
  String referenceFasta
  String outputPrefix
  String modules
- Array[String] priority = workflows
+ String priority
  Int jobMemory = 12
  Int timeout = 20
 }
@@ -181,8 +182,7 @@ command <<<
   vcfFiles = v.split()
   w = "~{sep=' ' workflows}"
   workflowIds = w.split()
-  p = "~{sep=' ' priority}"
-  priority = p.split()
+  priority = "~{priority}"
   
   if len(vcfFiles) != len(workflowIds):
       print("The arrays with input files and their respective workflow names are not of equal size!")
@@ -197,7 +197,7 @@ command <<<
   gatkCommand += " -R ~{referenceFasta} "
   gatkCommand += "-o ~{outputPrefix}_combined.vcf.gz "
   gatkCommand += "-genotypeMergeOptions PRIORITIZE "
-  gatkCommand += "-priority " + ",".join(priority)
+  gatkCommand += "-priority " + priority
   gatkCommand += " 2>&1"
 
   result_output = subprocess.run(gatkCommand, shell=True)
