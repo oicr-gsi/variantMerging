@@ -200,11 +200,13 @@ for record in vcf_reader:
         continue
     if add_gt and 'SGT' in vcf_reader.infos.keys():
         gtStrings = _tumor_normal_genotypes(record.REF, '.' if record.ALT is None else record.ALT, record.INFO)
+    if record.ALT[0] is None:
+        continue
 
     record_data = [record.CHROM, str(record.POS)]
     idString = "." if record.ID is None else record.ID
     qString = "." if record.QUAL is None else record.QUAL
-    altString = ",".join(map(str, '.' if record.ALT[0] is None else record.ALT))
+    altString = ",".join(map(str, record.ALT))
     filtString = "PASS" if len(record.FILTER) == 0 else ";".join(record.FILTER)
     record_data.extend([idString, record.REF, altString, qString, filtString])
 
