@@ -36,6 +36,7 @@ Parameter|Value|Description
 `preprocessVcf.referenceId`|String|String that shows the id of the reference assembly
 `preprocessVcf.preprocessScript`|String|path to preprocessing script
 `preprocessVcf.modules`|String|modules for running preprocessing
+`preprocessVcf.referenceFasta`|String|path to the reference FASTA file
 `mergeVcfs.modules`|String|modules for this task
 `combineVariants.referenceFasta`|String|path to the reference FASTA file
 `combineVariants.modules`|String|modules for running preprocessing

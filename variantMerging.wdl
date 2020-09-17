@@ -71,6 +71,7 @@ input {
  File vcfFile
  String producerWorkflow
  String referenceId
+ String referenceFasta
  String preprocessScript
  String modules
  Int jobMemory  = 12
@@ -89,9 +90,9 @@ parameter_meta {
 
 command <<<
  set -euxo pipefail
- python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_processed.vcf -r ~{referenceId}
- bgzip -c ~{basename(vcfFile, '.vcf.gz')}_processed.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
- tabix -p vcf ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+ python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId}
+ bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf.gz
+ gatk SortVcf -I ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf.gz -R ~{referenceFasta} -O ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
 >>>
 
 runtime {
@@ -101,7 +102,7 @@ runtime {
 }
 
 output {
-  File processedVcf = "~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz"
+  File processedVcf   = "~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz"
   File processedIndex = "~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz.tbi"
   String prodWorkflow = producerWorkflow
 }
