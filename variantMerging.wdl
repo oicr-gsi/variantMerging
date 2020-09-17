@@ -40,7 +40,7 @@ meta {
         url: "https://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2"
       },
       {
-        name: "gatk/4.1.0, gatk/3.6.0",
+        name: "gatk/4.1.7.0, gatk/3.6.0",
         url: "https://gatk.broadinstitute.org"
       }
     ]
