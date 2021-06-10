@@ -1,0 +1,305 @@
+[
+    {
+        "arguments": {
+            "variantMerging.combineVariants.jobMemory": null,
+            "variantMerging.combineVariants.modules": "gatk/3.6-0 tabix/0.2.6 hg19/p13",
+            "variantMerging.combineVariants.priority": "strelka,mutect2",
+            "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+            "variantMerging.combineVariants.timeout": null,
+            "variantMerging.inputVcfs": [
+                {
+                    "left": {
+                        "contents": {
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+                            "externalIds": [
+                                {
+                                    "id": "TEST",
+                                    "provider": "TEST"
+                                }
+                            ]
+                        },
+                        "type": "EXTERNAL"
+                    },
+                    "right": "strelka"
+                },
+                {
+                    "left": {
+                        "contents": {
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
+                            "externalIds": [
+                                {
+                                    "id": "TEST",
+                                    "provider": "TEST"
+                                }
+                            ]
+                        },
+                        "type": "EXTERNAL"
+                    },
+                    "right": "mutect2"
+                }
+            ],
+            "variantMerging.mergeVcfs.jobMemory": null,
+            "variantMerging.mergeVcfs.modules": "gatk/4.1.7.0 tabix/0.2.6",
+            "variantMerging.mergeVcfs.timeout": null,
+            "variantMerging.outputFileNamePrefix": "TEST-M2S",
+            "variantMerging.preprocessVcf.jobMemory": null,
+            "variantMerging.preprocessVcf.modules": "gatk/4.1.7.0 hg19/p13 varmerge-scripts/1.4 tabix/0.2.6",
+            "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.preprocessVcf.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+            "variantMerging.preprocessVcf.referenceId": "hg19",
+            "variantMerging.preprocessVcf.timeout": null
+        },
+        "description": "variantMerging workflow test",
+        "engineArguments": {},
+        "id": "TEST_M2S",
+        "metadata": {
+            "variantMerging.combinedIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.combinedVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            }
+        },
+        "validators": [
+            {
+                "metrics_calculate": "@CHECKOUT@/./calculate.sh",
+                "metrics_compare": "@CHECKOUT@/./compare.sh",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/output_metrics/TEST_M2S.metrics",
+                "type": "script"
+            }
+        ]
+    },
+    {
+        "arguments": {
+            "variantMerging.combineVariants.jobMemory": null,
+            "variantMerging.combineVariants.modules": "gatk/3.6-0 tabix/0.2.6 hg19/p13",
+            "variantMerging.combineVariants.priority": "strelka,mutect",
+            "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+            "variantMerging.combineVariants.timeout": null,
+            "variantMerging.inputVcfs": [
+                {
+                    "left": {
+                        "contents": {
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+                            "externalIds": [
+                                {
+                                    "id": "TEST",
+                                    "provider": "TEST"
+                                }
+                            ]
+                        },
+                        "type": "EXTERNAL"
+                    },
+                    "right": "strelka"
+                },
+                {
+                    "left": {
+                        "contents": {
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
+                            "externalIds": [
+                                {
+                                    "id": "TEST",
+                                    "provider": "TEST"
+                                }
+                            ]
+                        },
+                        "type": "EXTERNAL"
+                    },
+                    "right": "mutect"
+                }
+            ],
+            "variantMerging.mergeVcfs.jobMemory": null,
+            "variantMerging.mergeVcfs.modules": "gatk/4.1.7.0 tabix/0.2.6",
+            "variantMerging.mergeVcfs.timeout": null,
+            "variantMerging.outputFileNamePrefix": "TEST-MS",
+            "variantMerging.preprocessVcf.jobMemory": null,
+            "variantMerging.preprocessVcf.modules": "gatk/4.1.7.0 hg19/p13 varmerge-scripts/1.4 tabix/0.2.6",
+            "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.preprocessVcf.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+            "variantMerging.preprocessVcf.referenceId": "hg19",
+            "variantMerging.preprocessVcf.timeout": null
+        },
+        "description": "variantMerging workflow test",
+        "engineArguments": {},
+        "id": "TEST_MS",
+        "metadata": {
+            "variantMerging.combinedIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.combinedVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            }
+        },
+        "validators": [
+            {
+                "metrics_calculate": "@CHECKOUT@/./calculate.sh",
+                "metrics_compare": "@CHECKOUT@/./compare.sh",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/output_metrics/TEST_MS.metrics",
+                "type": "script"
+            }
+        ]
+    },
+    {
+        "arguments": {
+            "variantMerging.combineVariants.jobMemory": null,
+            "variantMerging.combineVariants.modules": "gatk/3.6-0 tabix/0.2.6 hg19/p13",
+            "variantMerging.combineVariants.priority": "strelka,mutect2,mutect",
+            "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+            "variantMerging.combineVariants.timeout": null,
+            "variantMerging.inputVcfs": [
+                {
+                    "left": {
+                        "contents": {
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+                            "externalIds": [
+                                {
+                                    "id": "TEST",
+                                    "provider": "TEST"
+                                }
+                            ]
+                        },
+                        "type": "EXTERNAL"
+                    },
+                    "right": "strelka"
+                },
+                {
+                    "left": {
+                        "contents": {
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
+                            "externalIds": [
+                                {
+                                    "id": "TEST",
+                                    "provider": "TEST"
+                                }
+                            ]
+                        },
+                        "type": "EXTERNAL"
+                    },
+                    "right": "mutect2"
+                },
+                {
+                    "left": {
+                        "contents": {
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
+                            "externalIds": [
+                                {
+                                    "id": "TEST",
+                                    "provider": "TEST"
+                                }
+                            ]
+                        },
+                        "type": "EXTERNAL"
+                    },
+                    "right": "mutect"
+                }
+            ],
+            "variantMerging.mergeVcfs.jobMemory": null,
+            "variantMerging.mergeVcfs.modules": "gatk/4.1.7.0 tabix/0.2.6",
+            "variantMerging.mergeVcfs.timeout": null,
+            "variantMerging.outputFileNamePrefix": "TEST-M2S",
+            "variantMerging.preprocessVcf.jobMemory": null,
+            "variantMerging.preprocessVcf.modules": "gatk/4.1.7.0 hg19/p13 varmerge-scripts/1.4 tabix/0.2.6",
+            "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.preprocessVcf.referenceFasta": "$HG19_ROOT/hg19_random.fa",
+            "variantMerging.preprocessVcf.referenceId": "hg19",
+            "variantMerging.preprocessVcf.timeout": null
+        },
+        "description": "variantMerging workflow test",
+        "engineArguments": {},
+        "id": "TEST_MULTI",
+        "metadata": {
+            "variantMerging.combinedIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.combinedVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            }
+        },
+        "validators": [
+            {
+                "metrics_calculate": "@CHECKOUT@/./calculate.sh",
+                "metrics_compare": "@CHECKOUT@/./compare.sh",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/output_metrics/TEST_MULTI.metrics",
+                "type": "script"
+            }
+        ]
+    }
+]
