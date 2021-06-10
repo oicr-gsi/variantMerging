@@ -68,6 +68,63 @@ Output | Type | Description
 `combinedVcf`|File|filtered vcf file containing all structural variant calls
 `combinedIndex`|File|tabix index of the filtered vcf file containing all structural variant calls
 
+## Commads
+
+This section lists commands run by variantMerging workflow
+
+### Preprocessing
+
+```
+python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId}
+ bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf.gz
+ gatk SortVcf -I ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf.gz -R ~{referenceFasta} -O ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+```
+
+### Merging vcf files
+
+This is a simple concatenation of input vcfs, there may be duplicate entries for the same call if multiple callers discover the same variant.
+
+```
+gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
+
+```
+
+### Combining vcf files
+
+A more complex merging with GATK CombineVariants: depending on priority assigned to the callers matching fields will be ranked according this settings and only the values from the caller with highest priority will be used.
+
+
+```
+  import subprocess
+  import sys
+  inputStrings = []
+  v = "~{sep=' ' inputVcfs}"
+  vcfFiles = v.split()
+  w = "~{sep=' ' workflows}"
+  workflowIds = w.split()
+  priority = "~{priority}"
+
+  if len(vcfFiles) != len(workflowIds):
+      print("The arrays with input files and their respective workflow names are not of equal size!")
+  else:
+      for f in range(0, len(vcfFiles)):
+          inputStrings.append("--variant:" + workflowIds[f] + " " + vcfFiles[f])
+
+  javaMemory = ~{jobMemory} - 6
+  gatkCommand  = "$JAVA_ROOT/bin/java -Xmx" + str(javaMemory) + "G -jar $GATK_ROOT/GenomeAnalysisTK.jar "
+  gatkCommand += "-T CombineVariants "
+  gatkCommand += " ".join(inputStrings)
+  gatkCommand += " -R ~{referenceFasta} "
+  gatkCommand += "-o ~{outputPrefix}_combined.vcf.gz "
+  gatkCommand += "-genotypeMergeOptions PRIORITIZE "
+  gatkCommand += "-priority " + priority
+  gatkCommand += " 2>&1"
+
+  result_output = subprocess.run(gatkCommand, shell=True)
+  sys.exit(result_output.returncode)
+
+```
+
 ## Support
 
 For support, please file an issue on the [Github project](https://github.com/oicr-gsi) or send an email to gsi@oicr.on.ca .
