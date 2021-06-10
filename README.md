@@ -1,5 +1,5 @@
 # Variant Merging
-VariantMerging 2.0, a workflow for combining variant calls from SNV analyses done with different callers
+VariantMerging 2.0, a workflow for combining variant calls from SNV analyses done with different callers (matched mode)
 
 ### Pre-processing
 
