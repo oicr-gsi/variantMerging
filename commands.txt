@@ -1,13 +1,16 @@
-## Commads
+## Commands
 
 This section lists commands run by variantMerging workflow
 
 ### Preprocessing
 
 ```
-python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId}
- bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf.gz
- gatk SortVcf -I ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf.gz -R ~{referenceFasta} -O ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+python3 PREPROCESSING_SCRIPT VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID
+
+bgzip -c VCF_FILE_BASENAME_tmp.vcf > VCF_FILE_BASENAME_tmp.vcf.gz
+gatk SortVcf -I VCF_FILE_BASENAME_tmp.vcf.gz 
+             -R REF_FASTA 
+             -O VCF_FILE_BASENAME_processed.vcf.gz
 ```
 
 ### Merging vcf files
@@ -15,7 +18,7 @@ python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vc
 This is a simple concatenation of input vcfs, there may be duplicate entries for the same call if multiple callers discover the same variant.
 
 ```
-gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
+gatk MergeVcfs -I INPUT_VCFS -O PREFIX_mergedVcfs.vcf.gz
 
 ```
 
@@ -25,32 +28,15 @@ A more complex merging with GATK CombineVariants: depending on priority assigned
 
 
 ```
-  import subprocess
-  import sys
-  inputStrings = []
-  v = "~{sep=' ' inputVcfs}"
-  vcfFiles = v.split()
-  w = "~{sep=' ' workflows}"
-  workflowIds = w.split()
-  priority = "~{priority}"
+  ...
+  
+  Embedded Python code runs the CombineVariants command:
 
-  if len(vcfFiles) != len(workflowIds):
-      print("The arrays with input files and their respective workflow names are not of equal size!")
-  else:
-      for f in range(0, len(vcfFiles)):
-          inputStrings.append("--variant:" + workflowIds[f] + " " + vcfFiles[f])
-
-  javaMemory = ~{jobMemory} - 6
-  gatkCommand  = "$JAVA_ROOT/bin/java -Xmx" + str(javaMemory) + "G -jar $GATK_ROOT/GenomeAnalysisTK.jar "
-  gatkCommand += "-T CombineVariants "
-  gatkCommand += " ".join(inputStrings)
-  gatkCommand += " -R ~{referenceFasta} "
-  gatkCommand += "-o ~{outputPrefix}_combined.vcf.gz "
-  gatkCommand += "-genotypeMergeOptions PRIORITIZE "
-  gatkCommand += "-priority " + priority
-  gatkCommand += " 2>&1"
-
-  result_output = subprocess.run(gatkCommand, shell=True)
-  sys.exit(result_output.returncode)
+  java -Xmx[JOB_MEMORY]G -jar GenomeAnalysisTK.jar
+       -T CombineVariants INPUTS
+       -R EF_FASTA
+       -o PREFIX_combined.vcf.gz
+       -genotypeMergeOptions PRIORITIZE
+       -priority PRIORITY
 
 ```
