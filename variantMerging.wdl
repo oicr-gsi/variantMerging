@@ -29,7 +29,7 @@ call combineVariants {input: inputVcfs = preprocessVcf.processedVcf, inputIndexe
 meta {
   author: "Peter Ruzanov"
   email: "peter.ruzanov@oicr.on.ca"
-  description: "VariantMerging 2.0, a workflow for combining variant calls from SNV analyses done with different callers"
+  description: "VariantMerging 2.0, a workflow for combining variant calls from SNV analyses done with different callers\n### Pre-processing\n\nThe script used at this step performs the following tasks:\n\n* removes non-canonical contigs\n* adds GT and AD fields (dot or calculated based on NT, SGT, if available)\n* removes tool-specific header lines\n\n## Overview\n\n![vmerging flowchart](docs/VARMERGE_specs.png)"
   dependencies: [
      {
         name: "java/8",
@@ -82,6 +82,7 @@ parameter_meta {
  vcfFile: "path to the input vcf file"
  producerWorkflow: "workflow name that produced the vcf"
  referenceId: "String that shows the id of the reference assembly"
+ referenceFasta: "path to the reference FASTA file"
  preprocessScript: "path to preprocessing script"
  modules: "modules for running preprocessing"
  jobMemory: "memory allocated to preprocessing, in gigabytes"

@@ -1,4 +1,5 @@
-# Variant Merging
+# variantMerging
+
 VariantMerging 2.0, a workflow for combining variant calls from SNV analyses done with different callers
 
 ### Pre-processing
@@ -34,9 +35,9 @@ Parameter|Value|Description
 ---|---|---
 `inputVcfs`|Array[Pair[File,String]]|Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls).
 `preprocessVcf.referenceId`|String|String that shows the id of the reference assembly
+`preprocessVcf.referenceFasta`|String|path to the reference FASTA file
 `preprocessVcf.preprocessScript`|String|path to preprocessing script
 `preprocessVcf.modules`|String|modules for running preprocessing
-`preprocessVcf.referenceFasta`|String|path to the reference FASTA file
 `mergeVcfs.modules`|String|modules for this task
 `combineVariants.referenceFasta`|String|path to the reference FASTA file
 `combineVariants.modules`|String|modules for running preprocessing
@@ -59,6 +60,7 @@ Parameter|Value|Default|Description
 `combineVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `combineVariants.timeout`|Int|20|timeout in hours
 
+
 ### Outputs
 
 Output | Type | Description
@@ -68,7 +70,50 @@ Output | Type | Description
 `combinedVcf`|File|filtered vcf file containing all structural variant calls
 `combinedIndex`|File|tabix index of the filtered vcf file containing all structural variant calls
 
-## Support
+
+## Commands
+ 
+ This section lists commands run by variantMerging workflow
+ 
+ ### Preprocessing
+ 
+ ```
+ python3 PREPROCESSING_SCRIPT VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID
+ 
+ bgzip -c VCF_FILE_BASENAME_tmp.vcf > VCF_FILE_BASENAME_tmp.vcf.gz
+ gatk SortVcf -I VCF_FILE_BASENAME_tmp.vcf.gz 
+              -R REF_FASTA 
+              -O VCF_FILE_BASENAME_processed.vcf.gz
+ ```
+ 
+ ### Merging vcf files
+ 
+ This is a simple concatenation of input vcfs, there may be duplicate entries for the same call if multiple callers discover the same variant.
+ 
+ ```
+ gatk MergeVcfs -I INPUT_VCFS -O PREFIX_mergedVcfs.vcf.gz
+ 
+ ```
+ 
+ ### Combining vcf files
+ 
+ A more complex merging with GATK CombineVariants: depending on priority assigned to the callers matching fields will be ranked according this settings and only the values from the caller with highest priority will be used.
+ 
+ 
+ ```
+   ...
+   
+   Embedded Python code runs the CombineVariants command:
+ 
+   java -Xmx[JOB_MEMORY]G -jar GenomeAnalysisTK.jar
+        -T CombineVariants INPUTS
+        -R EF_FASTA
+        -o PREFIX_combined.vcf.gz
+        -genotypeMergeOptions PRIORITIZE
+        -priority PRIORITY
+ 
+ ```
+ ## Support
 
 For support, please file an issue on the [Github project](https://github.com/oicr-gsi) or send an email to gsi@oicr.on.ca .
 
