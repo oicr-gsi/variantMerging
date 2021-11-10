@@ -146,7 +146,10 @@
             "variantMerging.preprocessVcf.timeout": null
         },
         "description": "variantMerging workflow test",
-        "engineArguments": {},
+        "engineArguments": {
+           "write_to_cache": false,
+           "read_from_cache": false
+        },
         "id": "TEST_MS",
         "metadata": {
             "variantMerging.combinedIndex": {
@@ -184,8 +187,8 @@
         },
         "validators": [
             {
-                "metrics_calculate": "@CHECKOUT@/./calculate.sh",
-                "metrics_compare": "@CHECKOUT@/./compare.sh",
+                "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
+                "metrics_compare": "@CHECKOUT@/tests/compare.sh",
                 "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/output_metrics/TEST_MS.metrics",
                 "type": "script"
             }
@@ -257,7 +260,10 @@
             "variantMerging.preprocessVcf.timeout": null
         },
         "description": "variantMerging workflow test",
-        "engineArguments": {},
+        "engineArguments": {
+           "write_to_cache": false,
+           "read_from_cache": false
+        },
         "id": "TEST_MULTI",
         "metadata": {
             "variantMerging.combinedIndex": {
@@ -295,8 +301,8 @@
         },
         "validators": [
             {
-                "metrics_calculate": "@CHECKOUT@/./calculate.sh",
-                "metrics_compare": "@CHECKOUT@/./compare.sh",
+                "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
+                "metrics_compare": "@CHECKOUT@/tests/compare.sh",
                 "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/output_metrics/TEST_MULTI.metrics",
                 "type": "script"
             }
