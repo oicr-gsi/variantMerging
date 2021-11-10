@@ -50,7 +50,10 @@
             "variantMerging.preprocessVcf.timeout": null
         },
         "description": "variantMerging workflow test",
-        "engineArguments": {},
+        "engineArguments": {
+           "read_from_cache": false,
+           "write_to_cache": false
+        },
         "id": "TEST_M2S",
         "metadata": {
             "variantMerging.combinedIndex": {
@@ -88,8 +91,8 @@
         },
         "validators": [
             {
-                "metrics_calculate": "@CHECKOUT@/./calculate.sh",
-                "metrics_compare": "@CHECKOUT@/./compare.sh",
+                "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
+                "metrics_compare": "@CHECKOUT@/tests/compare.sh",
                 "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/output_metrics/TEST_M2S.metrics",
                 "type": "script"
             }
