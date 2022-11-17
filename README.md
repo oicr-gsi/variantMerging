@@ -92,7 +92,7 @@ Output | Type | Description
  This is a simple concatenation of input vcfs, there may be duplicate entries for the same call if multiple callers discover the same variant.
  
  ```
- gatk MergeVcfs -I INPUT_VCFS -O PREFIX_mergedVcfs.vcf.gz
+   gatk MergeVcfs -I INPUT_VCFS -O PREFIX_mergedVcfs.vcf.gz
  
  ```
  
@@ -104,7 +104,7 @@ Output | Type | Description
  ```
    ...
    
-   Embedded Python code runs the CombineVariants command:
+   Embedded Python code runs the MergeVcfsAndGenotypes command from DISCVRSeq Toolkit:
  
    java -Xmx[JOB_MEMORY]G -jar DISCVRSeq.jar
         MergeVcfsAndGenotypes INPUTS
