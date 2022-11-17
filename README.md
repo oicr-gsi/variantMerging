@@ -16,9 +16,10 @@ The script used at this step performs the following tasks:
 
 ## Dependencies
 
-* [java 8](https://github.com/AdoptOpenJDK/openjdk8-upstream-binaries/releases/download/jdk8u222-b10/OpenJDK8U-jdk_x64_linux_8u222b10.tar.gz)
+* [java 9](https://github.com/AdoptOpenJDK/openjdk9-binaries/releases/download/jdk-9%2B181/OpenJDK9U-jdk_x64_linux_hotspot_9_181.tar.gz)
 * [tabix 0.2.6](https://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2)
-* [gatk 4.1.7.0, gatk 3.6.0](https://gatk.broadinstitute.org)
+* [gatk 4.2.6.1](https://gatk.broadinstitute.org)
+* [DISCVR-Seq Toolkit 1.3.21](https://bimberlab.github.io/DISCVRSeq)
 
 
 ## Usage
@@ -36,11 +37,7 @@ Parameter|Value|Description
 `inputVcfs`|Array[Pair[File,String]]|Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls).
 `preprocessVcf.referenceId`|String|String that shows the id of the reference assembly
 `preprocessVcf.referenceFasta`|String|path to the reference FASTA file
-`preprocessVcf.preprocessScript`|String|path to preprocessing script
-`preprocessVcf.modules`|String|modules for running preprocessing
-`mergeVcfs.modules`|String|modules for this task
 `combineVariants.referenceFasta`|String|path to the reference FASTA file
-`combineVariants.modules`|String|modules for running preprocessing
 `combineVariants.priority`|String|Comma-separated list defining priority of workflows when combining variants
 
 
@@ -53,10 +50,15 @@ Parameter|Value|Default|Description
 #### Optional task parameters:
 Parameter|Value|Default|Description
 ---|---|---|---
+`preprocessVcf.preprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to preprocessing script
+`preprocessVcf.modules`|String|"gatk/4.2.6.1 varmerge-scripts/1.4 tabix/0.2.6"|modules for running preprocessing
 `preprocessVcf.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
 `preprocessVcf.timeout`|Int|10|timeout in hours
 `mergeVcfs.timeout`|Int|20|timeout in hours
 `mergeVcfs.jobMemory`|Int|12|Allocated memory, in GB
+`mergeVcfs.modules`|String|"gatk/4.2.6.1 tabix/0.2.6"|modules for this task
+`combineVariants.modules`|String|"discvrseq/1.3.21"|modules for running preprocessing
+`combineVariants.dscrvToolsJar`|String|"$DISCVRSEQ_ROOT/bin/DISCVRSeq-1.3.21.jar"|DISCVR tools JAR
 `combineVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `combineVariants.timeout`|Int|20|timeout in hours
 
@@ -65,25 +67,24 @@ Parameter|Value|Default|Description
 
 Output | Type | Description
 ---|---|---
-`mergedVcf`|File|vcf file containing all structural variant calls
-`mergedIndex`|File|tabix index of the vcf file containing all structural variant calls
-`combinedVcf`|File|filtered vcf file containing all structural variant calls
-`combinedIndex`|File|tabix index of the filtered vcf file containing all structural variant calls
+`mergedVcf`|File|vcf file containing all variant calls
+`mergedIndex`|File|tabix index of the vcf file containing all variant calls
+`combinedVcf`|File|combined vcf file containing all variant calls
+`combinedIndex`|File|index of combined vcf file containing all variant calls
 
 
 ## Commands
- 
- This section lists commands run by variantMerging workflow
+ This section lists command(s) run by variantMerging workflow
  
  ### Preprocessing
  
  ```
- python3 PREPROCESSING_SCRIPT VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID
- 
- bgzip -c VCF_FILE_BASENAME_tmp.vcf > VCF_FILE_BASENAME_tmp.vcf.gz
- gatk SortVcf -I VCF_FILE_BASENAME_tmp.vcf.gz 
-              -R REF_FASTA 
-              -O VCF_FILE_BASENAME_processed.vcf.gz
+  python3 PREPROCESSING_SCRIPT VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID
+  
+  bgzip -c VCF_FILE_BASENAME_tmp.vcf > VCF_FILE_BASENAME_tmp.vcf.gz
+  gatk SortVcf -I VCF_FILE_BASENAME_tmp.vcf.gz 
+               -R REF_FASTA 
+               -O VCF_FILE_BASENAME_processed.vcf.gz
  ```
  
  ### Merging vcf files
@@ -105,11 +106,11 @@ Output | Type | Description
    
    Embedded Python code runs the CombineVariants command:
  
-   java -Xmx[JOB_MEMORY]G -jar GenomeAnalysisTK.jar
-        -T CombineVariants INPUTS
-        -R EF_FASTA
-        -o PREFIX_combined.vcf.gz
-        -genotypeMergeOptions PRIORITIZE
+   java -Xmx[JOB_MEMORY]G -jar DISCVRSeq.jar
+        MergeVcfsAndGenotypes INPUTS
+        -R REF_FASTA
+        -O PREFIX_combined.vcf.gz
+        --genotypeMergeOption PRIORITIZE
         -priority PRIORITY
  
  ```
