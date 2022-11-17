@@ -7,7 +7,7 @@
             "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.combineVariants.modules": "discvrseq/1.3.21",
-            "variantMerging.combineVariants.dscrvToolsJar": "/.mounts/labs/gsi/src/DISCVRSeq/DISCVRSeq-1.3.21.jar",
+            "variantMerging.combineVariants.dscrvToolsJar": "$DISCVRSEQ_ROOT/bin/DISCVRSeq-1.3.21.jar",
             "variantMerging.inputVcfs": [
                 {
                     "left": {
@@ -108,7 +108,7 @@
             "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.combineVariants.modules": "discvrseq/1.3.21",
-            "variantMerging.combineVariants.dscrvToolsJar": "/.mounts/labs/gsi/src/DISCVRSeq/DISCVRSeq-1.3.21.jar",
+            "variantMerging.combineVariants.dscrvToolsJar": "$DISCVRSEQ_ROOT/bin/DISCVRSeq-1.3.21.jar",
             "variantMerging.inputVcfs": [
                 {
                     "left": {
@@ -209,7 +209,7 @@
             "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.combineVariants.modules": "discvrseq/1.3.21",
-            "variantMerging.combineVariants.dscrvToolsJar": "/.mounts/labs/gsi/src/DISCVRSeq/DISCVRSeq-1.3.21.jar",
+            "variantMerging.combineVariants.dscrvToolsJar": "$DISCVRSEQ_ROOT/bin/DISCVRSeq-1.3.21.jar",
             "variantMerging.inputVcfs": [
                 {
                     "left": {
