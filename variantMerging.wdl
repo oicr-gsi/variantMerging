@@ -50,7 +50,7 @@ meta {
     output_meta: {
       mergedVcf: "vcf file containing all variant calls",
       mergedIndex: "tabix index of the vcf file containing all variant calls",
-      combinedVcf: "combined vcf file containing all variant calls"
+      combinedVcf: "combined vcf file containing all variant calls",
       combinedIndex: "index of combined vcf file containing all variant calls"
     }
   
