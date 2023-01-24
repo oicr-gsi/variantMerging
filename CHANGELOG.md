@@ -1,3 +1,7 @@
+## 2.1 - 2022-11-16
+- Introducing DISCVR Seq Toolkit as a replacement for GATK's combineVariant,
+- updating the default gatk version to the latest
+- adding default modules  
 ## Unreleased 2021-11-10
 [GP-2890](https://jira.oicr.on.ca/browse/GP-2890)
 ## 2.0.2 - 2020-06-10

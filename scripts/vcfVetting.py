@@ -9,43 +9,43 @@ parser.add_argument('-r', '--reference', help='reference id, i.e. hg19', require
 args = parser.parse_args()
 
 '''
+ This script makes several things:
 
-   This script makes several thing:
- * removes non-canonical contigs
+ * removes non-canonical contigs from both the header and records
  * adds GT and AD fields (imputed from NT, SGT and allele-specific read depths if available)
  * removes tool-specific header lines
  * changes sample names to NORMAL and TUMOR in header, reverse the order if TUMOR comes first
- 
- '''
+'''
 
 vcf_reader = vcf.Reader(filename=args.path, compressed=True)
 header_fields = ['CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT']
 header_lines = ["##fileformat=" + vcf_reader.metadata['fileformat'] + "\n"]
 
 '''
-    vcf 4.2 specs: special character handling
+ vcf 4.2 specs: special character handling
 '''
+
 def _special_character(f):
     switcher = {-1: 'A',
                 -2: 'G',
                 -3: 'R'}
     return switcher[f] if f in switcher.keys() else '.'
 
-'''
 
-   Process header lines:
+'''
+ Process header lines:
+
  * Check for GT FORMAT, it needs to be present
  * get rid of alternative contigs, keep only canonical ones
  * use reference id passed as a parameter, do not use id derived from reference metadata field
  * Do not use any lines other than specified
-
 '''
 
 for f in vcf_reader.filters:
     header_lines.append("##FILTER=<ID=" + vcf_reader.filters[f].id +
                         ",Description=\"" + vcf_reader.filters[f].desc + "\">\n")
 add_gt = True    # Add GT and AD formats if missing (strelka-specific)
-swap_nt = False  # Swap sample data if we have TUMOR preceeding NORMAL (mutect2-specific)
+swap_nt = False  # Swap sample data if we have TUMOR preceding NORMAL (mutect2-specific)
 
 for m in vcf_reader.formats:
     num = vcf_reader.formats[m].num
@@ -91,7 +91,7 @@ if 'inputs' in vcf_reader.metadata.keys():
     sampleList = list(inputHash.values())
     if sampleList[0] != 'NORMAL':
         swap_nt = True
-# mutect2 - specific SAMPLE field:
+""" mutect2 - specific SAMPLE field: """
 if 'SAMPLE' in vcf_reader.metadata.keys():
     for s in vcf_reader.metadata['SAMPLE']:
         header_lines.append("##SAMPLE=<ID=" + s['ID'] + ",SampleName=" + s['SampleName'] +
@@ -107,7 +107,8 @@ else:
 header_lines.append("#" + "\t".join(header_fields) + "\n")
 
 '''
-    Definitions for helper subroutines which 
+  Definitions for helper subroutines which 
+
   * Process NT/SGT fields from strelka an generate GT
   * Generate AD numbers (also with strelka)
 '''
@@ -119,7 +120,9 @@ def _sgtToGt(formatString, ref, alt):
     return [gt_norm, gt_tumor]
 
 def _tumor_normal_genotypes(ref, alt, info):
-    """Retrieve standard 0/0, 0/1, 1/1 style genotypes from INFO field.
+    """
+
+    Retrieve standard 0/0, 0/1, 1/1 style genotypes from INFO field.
     Normal -- NT field (ref, het, hom, conflict)
     Tumor -- SGT field
       - for SNPs specified as GG->TT for the normal and tumor diploid alleles. These
@@ -131,6 +134,7 @@ def _tumor_normal_genotypes(ref, alt, info):
     alt: A list of potentially multiple ALT alleles (rec.ALT.split(";"))
     info: The VCF INFO field
     fname, coords: not currently used, for debugging purposes
+
     """
     known_names = set(["het", "hom", "ref", "conflict"])
 
@@ -142,8 +146,7 @@ def _tumor_normal_genotypes(ref, alt, info):
         elif val.lower() in set(["ref", "conflict"]):
             return "0/0"
         else:
-            # Non-standard representations, het is our best imperfect representation
-            # print(fname, coords, ref, alt, info, val)
+            """ Non-standard representations, het is our best imperfect representation """
             return "0/1"
 
     def alleles_to_gt(val):
@@ -172,10 +175,12 @@ def _tumor_normal_genotypes(ref, alt, info):
         tumor_gt = alleles_to_gt(sgt_val)
     return tumor_gt, normal_gt
 
+
 def _generate_ad(ref, alt, samples):
-    """Retrieve allele reads and generate AD in form of REF_count,ALT1_count,ALT2_count etc.
-    ref: The REF allele from a VCF line
-    alt: A list of potentially multiple ALT alleles (rec.ALT.split(";"))
+    """
+      Retrieve allele reads and generate AD in form of REF_count,ALT1_count,ALT2_count etc.
+      ref: The REF allele from a VCF line
+      alt: A list of potentially multiple ALT alleles (rec.ALT.split(";"))
     """
     ref_count_ref = ','.join([str(samples[0][x + 'U'][0]) for x in ref])
     alt_count_ref = ','.join([str(samples[1][x + 'U'][0]) for x in ref])
@@ -189,10 +194,11 @@ def _generate_ad(ref, alt, samples):
     return_values = [ref_values, alt_values] if record.samples[0].sample == 'NORMAL' else [alt_values, ref_values]
     return return_values
 
+
 '''
-      Process Records:
-    * For records, make sure we have GT field properly formatted if we have SGT (strelka-specific)
-    * Only canonical contigs used in the pre-processed vcf
+  Process Records:
+  * For records, make sure we have GT field properly formatted if we have SGT (strelka/strelka2-specific)
+  * Only canonical contigs used in the pre-processed vcf
 '''
 record_lines = []
 for record in vcf_reader:
@@ -210,23 +216,27 @@ for record in vcf_reader:
     filtString = "PASS" if len(record.FILTER) == 0 else ";".join(record.FILTER)
     record_data.extend([idString, record.REF, altString, qString, filtString])
 
-    # Process INFO values
+    """ Process INFO values, Flag type needs to be printed without value """
     info_data = []
     for field in record.INFO:
         if isinstance(record.INFO[field], list):
             info_data.append("=".join([field, ",".join(map(str, record.INFO[field]))]))
-        else:
-            info_data.append("=".join([field, "." if record.INFO[field] is None else str(record.INFO[field])]))
+        elif field in vcf_reader.infos.keys():
+            f_type = vcf_reader.infos[field].type
+            if f_type == 'Flag' and record.INFO[field]:
+                info_data.append(field)
+            else:
+                info_data.append("=".join([field, "." if record.INFO[field] is None else str(record.INFO[field])]))
     info_string = ";".join(info_data) if len(info_data) > 0 else "."
     record_data.append(info_string)
 
-    # Add FORMAT keys
+    """ Add FORMAT keys """
     format_data = ['GT:AD'] if add_gt else []
     for field in record.FORMAT.split(":"):
         format_data.append(field)
     record_data.append(":".join(format_data))
 
-    # Process FORMAT values
+    """ Process FORMAT values """
     if add_gt:
         gt_values = [gtStrings[1], gtStrings[0]] if record.samples[0].sample == 'NORMAL' else gtStrings
         ad_values = _generate_ad([record.REF], record.ALT, record.samples)

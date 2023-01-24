@@ -1,42 +1,41 @@
 ## Commands
-
-This section lists commands run by variantMerging workflow
+This section lists command(s) run by variantMerging workflow
 
 ### Preprocessing
-
+ 
 ```
-python3 PREPROCESSING_SCRIPT VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID
-
-bgzip -c VCF_FILE_BASENAME_tmp.vcf > VCF_FILE_BASENAME_tmp.vcf.gz
-gatk SortVcf -I VCF_FILE_BASENAME_tmp.vcf.gz 
-             -R REF_FASTA 
-             -O VCF_FILE_BASENAME_processed.vcf.gz
+ python3 PREPROCESSING_SCRIPT VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID
+ 
+ bgzip -c VCF_FILE_BASENAME_tmp.vcf > VCF_FILE_BASENAME_tmp.vcf.gz
+ gatk SortVcf -I VCF_FILE_BASENAME_tmp.vcf.gz 
+              -R REF_FASTA 
+              -O VCF_FILE_BASENAME_processed.vcf.gz
 ```
-
+ 
 ### Merging vcf files
-
+ 
 This is a simple concatenation of input vcfs, there may be duplicate entries for the same call if multiple callers discover the same variant.
-
+ 
 ```
-gatk MergeVcfs -I INPUT_VCFS -O PREFIX_mergedVcfs.vcf.gz
-
+ gatk MergeVcfs -I INPUT_VCFS -O PREFIX_mergedVcfs.vcf.gz
+ 
 ```
-
+ 
 ### Combining vcf files
-
+ 
 A more complex merging with GATK CombineVariants: depending on priority assigned to the callers matching fields will be ranked according this settings and only the values from the caller with highest priority will be used.
-
-
+ 
+ 
 ```
-  ...
-  
-  Embedded Python code runs the CombineVariants command:
+ ...
+   
+ Embedded Python code runs the CombineVariants command:
 
-  java -Xmx[JOB_MEMORY]G -jar GenomeAnalysisTK.jar
-       -T CombineVariants INPUTS
-       -R EF_FASTA
-       -o PREFIX_combined.vcf.gz
-       -genotypeMergeOptions PRIORITIZE
-       -priority PRIORITY
+ java -Xmx[JOB_MEMORY]G -jar DISCVRSeq-1.3.21.jar
+      MergeVcfsAndGenotypes INPUTS
+      -R REF_FASTA
+      -O PREFIX_combined.vcf.gz
+      --genotypeMergeOption PRIORITIZE
+      -priority PRIORITY
 
 ```
