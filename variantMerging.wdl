@@ -76,7 +76,7 @@ input {
  String referenceId
  String referenceFasta
  String preprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
- String modules = "gatk/4.2.6.1 varmerge-scripts/1.4 tabix/0.2.6"
+ String modules = "gatk/4.2.6.1 varmerge-scripts/1.5 tabix/0.2.6"
  Int jobMemory = 12
  Int timeout = 10
 }
