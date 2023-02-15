@@ -1,3 +1,6 @@
+## 2.1.1 - 2023-02-15
+- Updated  the default varmerge-script version which fixes an issue with non-existent fields in vcf
+- Updated RTs accordingly
 ## 2.1 - 2022-11-16
 - Introducing DISCVR Seq Toolkit as a replacement for GATK's combineVariant,
 - updating the default gatk version to the latest

@@ -28,7 +28,7 @@ call combineVariants {input: inputVcfs = preprocessVcf.processedVcf, inputIndexe
 meta {
   author: "Peter Ruzanov"
   email: "peter.ruzanov@oicr.on.ca"
-  description: "VariantMerging 2.0, a workflow for combining variant calls from SNV analyses done with different callers\n### Pre-processing\n\nThe script used at this step performs the following tasks:\n\n* removes non-canonical contigs\n* adds GT and AD fields (dot or calculated based on NT, SGT, if available)\n* removes tool-specific header lines\n\n## Overview\n\n![vmerging flowchart](docs/VARMERGE_specs.png)"
+  description: "VariantMerging 2.1, a workflow for combining variant calls from SNV analyses done with different callers\n### Pre-processing\n\nThe script used at this step performs the following tasks:\n\n* removes non-canonical contigs\n* adds GT and AD fields (dot or calculated based on NT, SGT, if available)\n* removes tool-specific header lines\n\n## Overview\n\n![vmerging flowchart](docs/VARMERGE_specs.png)"
   dependencies: [
      {
         name: "java/9",
@@ -76,7 +76,7 @@ input {
  String referenceId
  String referenceFasta
  String preprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
- String modules = "gatk/4.2.6.1 varmerge-scripts/1.5 tabix/0.2.6"
+ String modules = "gatk/4.2.6.1 varmerge-scripts/1.6 tabix/0.2.6"
  Int jobMemory = 12
  Int timeout = 10
 }
