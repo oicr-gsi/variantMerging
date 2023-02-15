@@ -78,8 +78,8 @@ for c in vcf_reader.contigs:
     header_lines.append("##contig=<ID=" + vcf_reader.contigs[c].id + ",length=" + str(vcf_reader.contigs[c].length) +
                         ",assembly=" + args.reference + ">\n")
 
-header_lines.append("##reference=" + vcf_reader.metadata['reference'] + "\n")
 inputHash = {}
+
 '''
     Preserve metadata for inputs
 '''
@@ -89,15 +89,13 @@ if 'inputs' in vcf_reader.metadata.keys():
         keyValuePair = s.split(":")
         inputHash.update({keyValuePair[1]: keyValuePair[0]})
     sampleList = list(inputHash.values())
-    if sampleList[0] != 'NORMAL':
+    if sampleList[1] == 'NORMAL':
         swap_nt = True
-""" mutect2 - specific SAMPLE field: """
-if 'SAMPLE' in vcf_reader.metadata.keys():
-    for s in vcf_reader.metadata['SAMPLE']:
-        header_lines.append("##SAMPLE=<ID=" + s['ID'] + ",SampleName=" + s['SampleName'] +
-                            ",File=" + s['File'] + ">\n")
 
-if len(vcf_reader.samples) == 2 and vcf_reader.samples[0] != 'NORMAL' and len(inputHash) == 0:
+""" mutect2 - specific normal swap fix: """
+if len(vcf_reader.samples) == 2 and vcf_reader.samples[1] == 'NORMAL' and len(inputHash) == 0:
+    swap_nt = True
+if 'normal_sample' in vcf_reader.metadata.keys() and vcf_reader.samples[1] in vcf_reader.metadata['normal_sample']:
     swap_nt = True
 
 if vcf_reader.samples[0] not in ['NORMAL', 'TUMOR'] and len(inputHash) == 2:
@@ -199,6 +197,7 @@ def _generate_ad(ref, alt, samples):
   Process Records:
   * For records, make sure we have GT field properly formatted if we have SGT (strelka/strelka2-specific)
   * Only canonical contigs used in the pre-processed vcf
+  * If record has no filters listed, we put 'PASS' if there were filters applied (or '.' if not)
 '''
 record_lines = []
 for record in vcf_reader:
@@ -213,7 +212,10 @@ for record in vcf_reader:
     idString = "." if record.ID is None else record.ID
     qString = "." if record.QUAL is None else record.QUAL
     altString = ",".join(map(str, record.ALT))
-    filtString = "PASS" if len(record.FILTER) == 0 else ";".join(record.FILTER)
+    if record.FILTER is None or len(record.FILTER) == 0:
+        filtString = "." if len(vcf_reader.filters) == 0 else 'PASS'
+    else:
+        filtString = ";".join(record.FILTER)
     record_data.extend([idString, record.REF, altString, qString, filtString])
 
     """ Process INFO values, Flag type needs to be printed without value """
