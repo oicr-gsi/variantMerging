@@ -51,7 +51,7 @@ for f in vcf_reader.formats:
     num = vcf_reader.formats[f].num
     if vcf_reader.formats[f].num is None:
         num = '.'
-    elif vcf_reader.formats[f].num < 0:
+    elif isinstance(vcf_reader.formats[f].num, int) and vcf_reader.formats[f].num < 0:
         num = _special_character(vcf_reader.formats[f].num)
     if vcf_reader.formats[f].id == 'GT':
         add_gt = False
@@ -85,14 +85,6 @@ inputHash = {}
 '''
     Preserve metadata for inputs
 '''
-if 'inputs' in vcf_reader.metadata.keys():
-    header_lines.append("##inputs=" + " ".join(vcf_reader.metadata['inputs']) + "\n")
-    for s in vcf_reader.metadata['inputs'][0].split(" "):
-        keyValuePair = s.split(":")
-        inputHash.update({keyValuePair[1]: keyValuePair[0]})
-    sampleList = list(inputHash.values())
-    if sampleList[1] == 'NORMAL':
-        swap_nt = True
 
 """ mutect2 - specific normal swap fix: """
 if len(vcf_reader.samples) == 2 and vcf_reader.samples[1] == 'NORMAL' and len(inputHash) == 0:
@@ -100,10 +92,7 @@ if len(vcf_reader.samples) == 2 and vcf_reader.samples[1] == 'NORMAL' and len(in
 if 'normal_sample' in vcf_reader.metadata.keys() and vcf_reader.samples[1] in vcf_reader.metadata['normal_sample']:
     swap_nt = True
 
-if vcf_reader.samples[0] not in ['NORMAL', 'TUMOR'] and len(inputHash) == 2:
-    header_fields.extend(inputHash.values() if not swap_nt else ['NORMAL', 'TUMOR'])
-else:
-    header_fields.extend(vcf_reader.samples if not swap_nt else reversed(vcf_reader.samples))
+header_fields.extend(['NORMAL', 'TUMOR'])
 header_lines.append("#" + "\t".join(header_fields) + "\n")
 
 '''
