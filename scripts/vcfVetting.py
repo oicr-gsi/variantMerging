@@ -41,23 +41,23 @@ def _special_character(f):
  * Do not use any lines other than specified
 '''
 
-for f in vcf_reader.filters:
-    header_lines.append("##FILTER=<ID=" + vcf_reader.filters[f].id +
-                        ",Description=\"" + vcf_reader.filters[f].desc + "\">\n")
+for flt in vcf_reader.filters:
+    header_lines.append("##FILTER=<ID=" + vcf_reader.filters[flt].id +
+                        ",Description=\"" + vcf_reader.filters[flt].desc + "\">\n")
 add_gt = True    # Add GT and AD formats if missing (strelka-specific)
 swap_nt = False  # Swap sample data if we have TUMOR preceding NORMAL (mutect2-specific)
 
-for m in vcf_reader.formats:
-    num = vcf_reader.formats[m].num
-    if vcf_reader.formats[m].num is None:
+for f in vcf_reader.formats:
+    num = vcf_reader.formats[f].num
+    if vcf_reader.formats[f].num is None:
         num = '.'
-    elif vcf_reader.formats[m].num < 0:
-        num = _special_character(vcf_reader.formats[m].num)
-    if vcf_reader.formats[m].id == 'GT':
+    elif vcf_reader.formats[f].num < 0:
+        num = _special_character(vcf_reader.formats[f].num)
+    if vcf_reader.formats[f].id == 'GT':
         add_gt = False
-    header_lines.append("##FORMAT=<ID=" + vcf_reader.formats[m].id +
-                        ",Number=" + str(num) + ",Type=" + vcf_reader.formats[m].type +
-                        ",Description=\"" + vcf_reader.formats[m].desc + "\">\n")
+    header_lines.append("##FORMAT=<ID=" + vcf_reader.formats[f].id +
+                        ",Number=" + str(num) + ",Type=" + vcf_reader.formats[f].type +
+                        ",Description=\"" + vcf_reader.formats[f].desc + "\">\n")
 if add_gt:
     header_lines.append("##FORMAT=<ID=GT,Number=1,Type=String,Description=\""
                         "Genotype, constructed from SGT INFO via external modification\">\n")
@@ -68,6 +68,8 @@ for i in vcf_reader.infos:
     num = vcf_reader.infos[i].num
     if vcf_reader.infos[i].num is None:
         num = '.'
+    elif isinstance(vcf_reader.infos[i].num, int) and vcf_reader.infos[i].num < 0:
+        num = _special_character(vcf_reader.infos[i].num)
     header_lines.append("##INFO=<ID=" + vcf_reader.infos[i].id +
                         ",Number=" + str(num) + ",Type=" + vcf_reader.infos[i].type +
                         ",Description=\"" + vcf_reader.infos[i].desc + "\">\n")
