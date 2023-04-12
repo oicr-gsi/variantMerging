@@ -88,7 +88,18 @@ for record in combined_reader:
 
     info_string = ";".join(info_data) if len(info_data) > 0 else "."
     record_data.append(info_string)
+    sample_data = []
+    for sample in record.samples:
+        format_data = []
+        for field in record.FORMAT.split(":"):
+            if isinstance(sample[field], list):
+                format_data.append(",".join(map(str, sample[field])))
+            else:
+                format_data.append("." if sample[field] is None else str(sample[field]))
+        sample_data.append(":".join(format_data))
 
+    for s in sample_data:
+        record_data.append(s)
     record_lines.append("\t".join(record_data) + "\n")
 
 
