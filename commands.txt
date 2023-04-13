@@ -1,4 +1,5 @@
 ## Commands
+
 This section lists command(s) run by variantMerging workflow
 
 ### Preprocessing
@@ -25,10 +26,7 @@ This is a simple concatenation of input vcfs, there may be duplicate entries for
  
 A more complex merging with GATK CombineVariants: depending on priority assigned to the callers matching fields will be ranked according this settings and only the values from the caller with highest priority will be used.
  
- 
 ```
- ...
-   
  Embedded Python code runs the CombineVariants command:
 
  java -Xmx[JOB_MEMORY]G -jar DISCVRSeq-1.3.21.jar
@@ -39,3 +37,18 @@ A more complex merging with GATK CombineVariants: depending on priority assigned
       -priority PRIORITY
 
 ```
+
+### Post-processing combined vcf files
+
+DISCVRSeq produces combined variants with set field which does not allow to identify consensus calls and other calls which
+are made by multiple callers
+
+```
+ Custom Python code runs to update set flags in vcf file produced by Combining variants with MergeVcfsAndGenotypes:
+
+ python3 POSTROCESSING_SCRIPT -m MERGED_VCF_FILE -c COMBINED_VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID 
+ bgzip -c VCF_FILE_BASENAME_tmp.vcf > OUTPUT_PREFIX_combinedPostprocessedVcfs.vcf.gz
+ tabix -p vcf OUTPUT_PREFIX_combinedPostprocessedVcfs.vcf.gz
+
+```
+

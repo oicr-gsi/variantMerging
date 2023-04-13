@@ -1,3 +1,5 @@
+## 2.2
+- Added step which runs post-processing script, new varmerge-scripts version as a default
 ## Unrealeased - 2023-04-11
 - Added post-processing script, new tag for varmerge-scripts (1.8)
 ## 2.1.1 - 2023-02-15

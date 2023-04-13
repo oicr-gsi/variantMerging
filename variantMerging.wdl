@@ -25,6 +25,9 @@ call mergeVcfs { input: inputVcfs = preprocessVcf.processedVcf, outputPrefix = s
 # Combine using DISCVR-Seq Toolkit
 call combineVariants {input: inputVcfs = preprocessVcf.processedVcf, inputIndexes = preprocessVcf.processedIndex, workflows = preprocessVcf.prodWorkflow, outputPrefix = sampleID }
 
+# Post-process combined variant calls
+call postprocessVcfs {input: mergedVcf = mergeVcfs.mergedVcf, combinedVcf = combineVariants.combinedVcf, outputPrefix = sampleID }
+
 meta {
   author: "Peter Ruzanov"
   email: "peter.ruzanov@oicr.on.ca"
@@ -51,7 +54,9 @@ meta {
       mergedVcf: "vcf file containing all variant calls",
       mergedIndex: "tabix index of the vcf file containing all variant calls",
       combinedVcf: "combined vcf file containing all variant calls",
-      combinedIndex: "index of combined vcf file containing all variant calls"
+      combinedIndex: "index of combined vcf file containing all variant calls",
+      postprocessedVcf: "post-processed combined vcf file with updated set field for overlapping calls",
+      postprocessedIndex: "index of post-processed vcf file"
     }
   
 
@@ -62,12 +67,14 @@ output {
   File mergedIndex = mergeVcfs.mergedIndex
   File combinedVcf = combineVariants.combinedVcf
   File combinedIndex = combineVariants.combinedIndex
+  File postprocessedVcf = postprocessVcfs.postprocessedVcf
+  File postprocessedIndex = postprocessVcfs.postprocessedIndex
 }
 
 }
 
 # =================================
-#  1 of 3: preprocess a vcf file 
+#  1 of 4: preprocess a vcf file 
 # =================================
 task preprocessVcf {
 input {
@@ -76,7 +83,7 @@ input {
  String referenceId
  String referenceFasta
  String preprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
- String modules = "gatk/4.2.6.1 varmerge-scripts/1.6 tabix/0.2.6"
+ String modules = "gatk/4.2.6.1 varmerge-scripts/1.9 tabix/0.2.6"
  Int jobMemory = 12
  Int timeout = 10
 }
@@ -113,7 +120,7 @@ output {
 }
 
 # ==================================================
-#  2 of 3: concat files, all variants concatenated,
+#  2 of 4: concat files, all variants concatenated,
 #  same variant may appear multiple times
 # ==================================================
 task mergeVcfs {
@@ -150,7 +157,7 @@ output {
 }
 
 # ==================================================================
-#  3 of 3: merge files with CombineVariants, merging matching fields
+#  3 of 4: merge files with CombineVariants, merging matching fields
 #  with priority defined by the order in the input array
 # ==================================================================
 task combineVariants {
@@ -222,5 +229,51 @@ runtime {
 output {
   File combinedVcf = "~{outputPrefix}_combined.vcf.gz"
   File combinedIndex = "~{outputPrefix}_combined.vcf.gz.tbi"
+}
+}
+
+# ====================================================
+# 4 of 4: post-process vcf files, mark consensus calls 
+# and other overlaps accordingly
+# ====================================================
+task postprocessVcfs {
+input {
+ File mergedVcf
+ File combinedVcf
+ String referenceId
+ String outputPrefix
+ String postprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfPostprocessing.py"
+ Int timeout = 20
+ Int jobMemory = 12
+ String modules = "tabix/0.2.6 varmerge-scripts/1.9"
+}
+
+parameter_meta {
+ mergedVcf: "vcf file with all variant calls concatenated"
+ combinedVcf: "vcf file made with DISCVRseq, combined variants we need to annotate"
+ referenceId: "String that shows the id of the reference assembly"
+ outputPrefix: "prefix for output file"
+ postprocessScript: "Path to post-process script"
+ timeout: "timeout in hours"
+ jobMemory: "Allocated memory, in GB"
+ modules: "modules for this task"
+}
+
+command <<<
+ set -euxo pipefail
+ python3 ~{postprocessScript} -m ~{mergedVcf} -c ~{combinedVcf} -o ~{basename(combinedVcf, '.vcf.gz')}_tmp.vcf -r ~{referenceId}
+ bgzip -c ~{basename(combinedVcf, '.vcf.gz')}_tmp.vcf > ~{outputPrefix}_combinedPostprocessedVcfs.vcf.gz
+ tabix -p vcf ~{outputPrefix}_combinedPostprocessedVcfs.vcf.gz
+>>>
+
+runtime {
+  memory:  "~{jobMemory} GB"
+  modules: "~{modules}"
+  timeout: "~{timeout}"
+}
+
+output {
+  File postprocessedVcf = "~{outputPrefix}_combinedPostprocessedVcfs.vcf.gz"
+  File postprocessedIndex = "~{outputPrefix}_combinedPostprocessedVcfs.vcf.gz.tbi"
 }
 }

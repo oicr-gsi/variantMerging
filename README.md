@@ -1,7 +1,6 @@
 # variantMerging
 
-VariantMerging 2.0, a workflow for combining variant calls from SNV analyses done with different callers
-
+VariantMerging 2.1, a workflow for combining variant calls from SNV analyses done with different callers
 ### Pre-processing
 
 The script used at this step performs the following tasks:
@@ -39,6 +38,7 @@ Parameter|Value|Description
 `preprocessVcf.referenceFasta`|String|path to the reference FASTA file
 `combineVariants.referenceFasta`|String|path to the reference FASTA file
 `combineVariants.priority`|String|Comma-separated list defining priority of workflows when combining variants
+`postprocessVcfs.referenceId`|String|String that shows the id of the reference assembly
 
 
 #### Optional workflow parameters:
@@ -51,7 +51,7 @@ Parameter|Value|Default|Description
 Parameter|Value|Default|Description
 ---|---|---|---
 `preprocessVcf.preprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to preprocessing script
-`preprocessVcf.modules`|String|"gatk/4.2.6.1 varmerge-scripts/1.4 tabix/0.2.6"|modules for running preprocessing
+`preprocessVcf.modules`|String|"gatk/4.2.6.1 varmerge-scripts/1.9 tabix/0.2.6"|modules for running preprocessing
 `preprocessVcf.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
 `preprocessVcf.timeout`|Int|10|timeout in hours
 `mergeVcfs.timeout`|Int|20|timeout in hours
@@ -61,6 +61,10 @@ Parameter|Value|Default|Description
 `combineVariants.dscrvToolsJar`|String|"$DISCVRSEQ_ROOT/bin/DISCVRSeq-1.3.21.jar"|DISCVR tools JAR
 `combineVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `combineVariants.timeout`|Int|20|timeout in hours
+`postprocessVcfs.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfPostprocessing.py"|Path to post-process script
+`postprocessVcfs.timeout`|Int|20|timeout in hours
+`postprocessVcfs.jobMemory`|Int|12|Allocated memory, in GB
+`postprocessVcfs.modules`|String|"tabix/0.2.6 varmerge-scripts/1.9"|modules for this task
 
 
 ### Outputs
@@ -71,13 +75,16 @@ Output | Type | Description
 `mergedIndex`|File|tabix index of the vcf file containing all variant calls
 `combinedVcf`|File|combined vcf file containing all variant calls
 `combinedIndex`|File|index of combined vcf file containing all variant calls
+`postprocessedVcf`|File|post-processed combined vcf file with updated set field for overlapping calls
+`postprocessedIndex`|File|index of post-processed vcf file
 
 
 ## Commands
+ 
  This section lists command(s) run by variantMerging workflow
  
  ### Preprocessing
- 
+  
  ```
   python3 PREPROCESSING_SCRIPT VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID
   
@@ -86,34 +93,46 @@ Output | Type | Description
                -R REF_FASTA 
                -O VCF_FILE_BASENAME_processed.vcf.gz
  ```
- 
+  
  ### Merging vcf files
- 
+  
  This is a simple concatenation of input vcfs, there may be duplicate entries for the same call if multiple callers discover the same variant.
- 
+  
  ```
-   gatk MergeVcfs -I INPUT_VCFS -O PREFIX_mergedVcfs.vcf.gz
- 
+  gatk MergeVcfs -I INPUT_VCFS -O PREFIX_mergedVcfs.vcf.gz
+  
  ```
- 
+  
  ### Combining vcf files
- 
+  
  A more complex merging with GATK CombineVariants: depending on priority assigned to the callers matching fields will be ranked according this settings and only the values from the caller with highest priority will be used.
+  
+ ```
+  Embedded Python code runs the CombineVariants command:
  
+  java -Xmx[JOB_MEMORY]G -jar DISCVRSeq-1.3.21.jar
+       MergeVcfsAndGenotypes INPUTS
+       -R REF_FASTA
+       -O PREFIX_combined.vcf.gz
+       --genotypeMergeOption PRIORITIZE
+       -priority PRIORITY
  
  ```
-   ...
-   
-   Embedded Python code runs the MergeVcfsAndGenotypes command from DISCVRSeq Toolkit:
  
-   java -Xmx[JOB_MEMORY]G -jar DISCVRSeq.jar
-        MergeVcfsAndGenotypes INPUTS
-        -R REF_FASTA
-        -O PREFIX_combined.vcf.gz
-        --genotypeMergeOption PRIORITIZE
-        -priority PRIORITY
+ ### Post-processing combined vcf files
+ 
+ DISCVRSeq produces combined variants with set field which does not allow to identify consensus calls and other calls which
+ are made by multiple callers
  
  ```
+  Custom Python code runs to update set flags in vcf file produced by Combining variants with MergeVcfsAndGenotypes:
+ 
+  python3 POSTROCESSING_SCRIPT -m MERGED_VCF_FILE -c COMBINED_VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID 
+  bgzip -c VCF_FILE_BASENAME_tmp.vcf > OUTPUT_PREFIX_combinedPostprocessedVcfs.vcf.gz
+  tabix -p vcf OUTPUT_PREFIX_combinedPostprocessedVcfs.vcf.gz
+ 
+ ```
+ 
  ## Support
 
 For support, please file an issue on the [Github project](https://github.com/oicr-gsi) or send an email to gsi@oicr.on.ca .
