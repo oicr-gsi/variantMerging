@@ -93,7 +93,24 @@
                     }
                 ],
                 "type": "ALL"
+            },
+            "variantMerging.postprocessedIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.postprocessedVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
             }
+
         },
         "validators": [
             {
@@ -195,6 +212,22 @@
                 "contents": [
                     {
                         "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.postprocessedIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.postprocessedVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
                     }
                 ],
                 "type": "ALL"
@@ -316,6 +349,22 @@
                 "contents": [
                     {
                         "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.postprocessedIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.postprocessedVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
                     }
                 ],
                 "type": "ALL"
