@@ -22,11 +22,8 @@ scatter (v in inputVcfs) {
 # Merge using MergeVcfs (Picard) 
 call mergeVcfs { input: inputVcfs = preprocessVcf.processedVcf, outputPrefix = sampleID }
 
-# Combine using DISCVR-Seq Toolkit
-call combineVariants {input: inputVcfs = preprocessVcf.processedVcf, inputIndexes = preprocessVcf.processedIndex, workflows = preprocessVcf.prodWorkflow, outputPrefix = sampleID }
-
-# Post-process combined variant calls
-call postprocessVcfs {input: mergedVcf = mergeVcfs.mergedVcf, combinedVcf = combineVariants.combinedVcf, outputPrefix = sampleID }
+# Combine using Custom script
+call combineVariants {input: inputVcfs = preprocessVcf.processedVcf, outputPrefix = sampleID }
 
 meta {
   author: "Peter Ruzanov"
@@ -44,10 +41,6 @@ meta {
       {
         name: "gatk/4.2.6.1",
         url: "https://gatk.broadinstitute.org"
-      },
-      {
-        name: "DISCVR-Seq Toolkit/1.3.21",
-        url: "https://bimberlab.github.io/DISCVRSeq"
       }
     ]
     output_meta: {
@@ -67,14 +60,12 @@ output {
   File mergedIndex = mergeVcfs.mergedIndex
   File combinedVcf = combineVariants.combinedVcf
   File combinedIndex = combineVariants.combinedIndex
-  File postprocessedVcf = postprocessVcfs.postprocessedVcf
-  File postprocessedIndex = postprocessVcfs.postprocessedIndex
 }
 
 }
 
 # =================================
-#  1 of 4: preprocess a vcf file 
+#  1 of 3: preprocess a vcf file 
 # =================================
 task preprocessVcf {
 input {
@@ -120,7 +111,7 @@ output {
 }
 
 # ==================================================
-#  2 of 4: concat files, all variants concatenated,
+#  2 of 3: concat files, all variants concatenated,
 #  same variant may appear multiple times
 # ==================================================
 task mergeVcfs {
@@ -157,67 +148,41 @@ output {
 }
 
 # ==================================================================
-#  3 of 4: merge files with CombineVariants, merging matching fields
+#  3 of 3: merge files with CombineVariants, merging matching fields
 #  with priority defined by the order in the input array
 # ==================================================================
 task combineVariants {
 input {
  Array[File] inputVcfs
- Array[File] inputIndexes
- Array[String] workflows
- String referenceFasta
  String outputPrefix
- String modules = "discvrseq/1.3.21"
- String priority
- String dscrvToolsJar = "$DISCVRSEQ_ROOT/bin/DISCVRSeq-1.3.21.jar"
+ String modules
+ String combiningScript
  Int jobMemory = 12
  Int timeout = 20
 }
 
 parameter_meta {
  inputVcfs: "array of input vcf files"
- inputIndexes: "array of tabix indexes for vcf files"
- workflows: "array of ids of producer workflows"
- referenceFasta: "path to the reference FASTA file"
  outputPrefix: "prefix for output file"
  modules: "modules for running preprocessing"
- priority: "Comma-separated list defining priority of workflows when combining variants"
- dscrvToolsJar: "DISCVR tools JAR"
+ combiningScript: "Path to combining script"
  jobMemory: "memory allocated to preprocessing, in GB"
  timeout: "timeout in hours"
 }
 
 command <<<
-  python3<<CODE
-  import subprocess
+  set -euxo pipefail 
+  python3 <<CODE
   import sys
-  inputStrings = []
   v = "~{sep=' ' inputVcfs}"
   vcfFiles = v.split()
-  w = "~{sep=' ' workflows}"
-  workflowIds = w.split()
-  priority = "~{priority}"
-  
-  if len(vcfFiles) != len(workflowIds):
-      print("The arrays with input files and their respective workflow names are not of equal size!")
-  else:
-      for f in range(0, len(vcfFiles)):
-          inputStrings.append("--variant:" + workflowIds[f] + " " + vcfFiles[f])
-
-  javaMemory = ~{jobMemory} - 6 
-
-  dscvrCommand  = "$JAVA_ROOT/bin/java -Xmx" + str(javaMemory) + "G -jar ~{dscrvToolsJar} "
-  dscvrCommand += "MergeVcfsAndGenotypes "
-  dscvrCommand += " ".join(inputStrings)
-  dscvrCommand += " -R ~{referenceFasta} "
-  dscvrCommand += "-O ~{outputPrefix}_combined.vcf.gz "
-  dscvrCommand += "--genotypeMergeOption PRIORITIZE "
-  dscvrCommand += "-priority " + priority
-  dscvrCommand += " 2>&1"
-
-  result_output = subprocess.run(dscvrCommand, shell=True)
-  sys.exit(result_output.returncode)
+  with open("vcf_list", 'w') as l:
+      l.writelines(vcfFiles)
   CODE
+
+  python3 ~{combiningScript} vcf_list -c ~{outputPrefix}_combined.vcf
+  bgzip -c ~{outputPrefix}_combined.vcf > ~{outputPrefix}_combined.vcf.gz
+  tabix -p vcf ~{outputPrefix}_combined.vcf.gz 
 >>>
 
 runtime {
@@ -232,48 +197,3 @@ output {
 }
 }
 
-# ====================================================
-# 4 of 4: post-process vcf files, mark consensus calls 
-# and other overlaps accordingly
-# ====================================================
-task postprocessVcfs {
-input {
- File mergedVcf
- File combinedVcf
- String referenceId
- String outputPrefix
- String postprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfPostprocessing.py"
- Int timeout = 20
- Int jobMemory = 12
- String modules = "tabix/0.2.6 varmerge-scripts/1.9"
-}
-
-parameter_meta {
- mergedVcf: "vcf file with all variant calls concatenated"
- combinedVcf: "vcf file made with DISCVRseq, combined variants we need to annotate"
- referenceId: "String that shows the id of the reference assembly"
- outputPrefix: "prefix for output file"
- postprocessScript: "Path to post-process script"
- timeout: "timeout in hours"
- jobMemory: "Allocated memory, in GB"
- modules: "modules for this task"
-}
-
-command <<<
- set -euxo pipefail
- python3 ~{postprocessScript} -m ~{mergedVcf} -c ~{combinedVcf} -o ~{basename(combinedVcf, '.vcf.gz')}_tmp.vcf -r ~{referenceId}
- bgzip -c ~{basename(combinedVcf, '.vcf.gz')}_tmp.vcf > ~{outputPrefix}_combinedPostprocessedVcfs.vcf.gz
- tabix -p vcf ~{outputPrefix}_combinedPostprocessedVcfs.vcf.gz
->>>
-
-runtime {
-  memory:  "~{jobMemory} GB"
-  modules: "~{modules}"
-  timeout: "~{timeout}"
-}
-
-output {
-  File postprocessedVcf = "~{outputPrefix}_combinedPostprocessedVcfs.vcf.gz"
-  File postprocessedIndex = "~{outputPrefix}_combinedPostprocessedVcfs.vcf.gz.tbi"
-}
-}
