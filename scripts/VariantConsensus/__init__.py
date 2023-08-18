@@ -3,6 +3,7 @@ This module is a re-coded combine_vcfs.rb from VariantConsensus repo maintained 
 check and correction of order of samples, pre-processing vcf header
 """
 import csv
+import gzip
 import subprocess
 
 
@@ -40,19 +41,32 @@ def zip_fields(array):
 
 
 def get_comment_lines(file_path):
-    with open(file_path, 'r') as file:
-        comment_lines = [line.strip() for line in file if line.startswith('#')]
-        return comment_lines
+    if file_path.endswith('.gz'):
+        with gzip.open(file_path, 'rt') as file:
+            comment_lines = [line.strip() for line in file if line.startswith('#')]
+            return comment_lines
+    else:
+        with open(file_path, 'r') as file:
+            comment_lines = [line.strip() for line in file if line.startswith('#')]
+            return comment_lines
 
 
 def get_data_lines(file_path):
-    with open(file_path, 'r') as file:
-        data_lines = [line.strip() for line in file if not line.startswith('#')]
-        return data_lines
+    if file_path.endswith('.gz'):
+        with gzip.open(file_path, 'rt') as file:
+            data_lines = [line.strip() for line in file if not line.startswith('#')]
+            return data_lines
+    else:
+        with open(file_path, 'r') as file:
+            data_lines = [line.strip() for line in file if not line.startswith('#')]
+            return data_lines
 
 def guess_vcf_tumor_sample(vcf):
     try:
-        grep_output = subprocess.check_output(f"grep 'tumor_sample=' '{vcf}'", shell=True).decode().strip()
+        if vcf.endswith('.gz'):
+            grep_output = subprocess.check_output(f"zgrep 'tumor_sample=' '{vcf}'", shell=True).decode().strip()
+        else:
+            grep_output = subprocess.check_output(f"grep 'tumor_sample=' '{vcf}'", shell=True).decode().strip()
         return grep_output.split("=")[-1]
     except subprocess.CalledProcessError:
         header_lines = get_comment_lines(vcf)
@@ -80,8 +94,9 @@ def guess_vcf_tumor_sample(vcf):
 def combine_caller_vcfs(list):
     preambles = {}
     for name, file in list.items():
-        with open(file) as f:
-            preambles[name] = [line for line in f.read().split("\n") if line.startswith("#")]
+        preambles[name] = get_comment_lines(file)
+        #with open(file) as f:
+        #    preambles[name] = [line for line in f.read().split("\n") if line.startswith("#")]
 
     preamble = []
 
@@ -121,29 +136,26 @@ def combine_caller_vcfs(list):
     for name, file in list.items():
         # TODO ask Miguel about this (why we are getting this if tumor_sample gets set below)
         tumor_id = guess_vcf_tumor_sample(file)
-        with open(file) as f:
-            reader = csv.reader(f, delimiter='\t')
-            for line in reader:
-                if line[0].startswith("#"):
-                    continue
-                # TODO: ask Miguel about this (is the intention to process matched calls only?)
-                chrom, pos, rsid, ref, alt, qual, vfilter, info, vformat, normal_sample, tumor_sample, *rest = line
-                swap_samples = tumor_id == fields[-2] or fields[-1] == "NORMAL"
-                # TODO : ask Miguel about this (how do we check for swapped TUMOR and NORMAL)
-                #if len(vformat.split(":")) == 10:
-                #    sample1, sample2 = vformat.split(":")[-2:]
-                #    swap_samples: bool = sample1 == tumor_sample
-                #else:
-                #    sample2 = vformat.split(":")[-1]
-                #    swap_samples = False
-                if swap_samples:
-                    normal_sample, tumor_sample = tumor_sample, normal_sample
-                mutation = ":".join([chrom, pos, ref, alt])
-                vfilter = ";".join([f"{name}--{f}" for f in vfilter.split(";") if f != "."])
-                info = ";".join([f"{name}--{f}" for f in info.split(";") if f != "."])
-                vformat = ":".join([f"{name}--{f}" for f in vformat.split(":") if f != "."])
-                variants.setdefault(mutation, []).append([vfilter, info, vformat, normal_sample, tumor_sample] + rest)
-                called_by.setdefault(mutation, []).append(name)
+        vcf_lines = get_data_lines(file)
+        for line in vcf_lines:
+            # TODO: ask Miguel about this (is the intention to process matched calls only?)
+            chrom, pos, rsid, ref, alt, qual, vfilter, info, vformat, normal_sample, tumor_sample, *rest = line.split('\t')
+            swap_samples = tumor_id == fields[-2] or fields[-1] == "NORMAL"
+            # TODO : ask Miguel about this (how do we check for swapped TUMOR and NORMAL)
+            #if len(vformat.split(":")) == 10:
+            #    sample1, sample2 = vformat.split(":")[-2:]
+            #    swap_samples: bool = sample1 == tumor_sample
+            #else:
+            #    sample2 = vformat.split(":")[-1]
+            #    swap_samples = False
+            if swap_samples:
+                normal_sample, tumor_sample = tumor_sample, normal_sample
+            mutation = ":".join([chrom, pos, ref, alt])
+            vfilter = ";".join([f"{name}--{f}" for f in vfilter.split(";") if f != "."])
+            info = ";".join([f"{name}--{f}" for f in info.split(";") if f != "."])
+            vformat = ":".join([f"{name}--{f}" for f in vformat.split(":") if f != "."])
+            variants.setdefault(mutation, []).append([vfilter, info, vformat, normal_sample, tumor_sample] + rest)
+            called_by.setdefault(mutation, []).append(name)
 
     fields[-2] = "NORMAL"
     fields[-1] = "TUMOR"
