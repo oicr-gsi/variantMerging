@@ -23,7 +23,7 @@ scatter (v in inputVcfs) {
 call mergeVcfs { input: inputVcfs = preprocessVcf.processedVcf, outputPrefix = sampleID }
 
 # Combine using Custom script
-call combineVariants {input: inputVcfs = preprocessVcf.processedVcf, outputPrefix = sampleID }
+call combineVariants {input: inputVcfs = preprocessVcf.processedVcf, inputNames = preprocessVcf.prodWorkflow, outputPrefix = sampleID }
 
 meta {
   author: "Peter Ruzanov"
@@ -154,18 +154,22 @@ output {
 task combineVariants {
 input {
  Array[File] inputVcfs
+ Array[String] inputNames
  String outputPrefix
  String modules
  String combiningScript
+ String referenceFasta
  Int jobMemory = 12
  Int timeout = 20
 }
 
 parameter_meta {
  inputVcfs: "array of input vcf files"
+ inputNames: "Array of names, in the same order as vcf files"
  outputPrefix: "prefix for output file"
  modules: "modules for running preprocessing"
  combiningScript: "Path to combining script"
+ referenceFasta: "path to the reference FASTA file"
  jobMemory: "memory allocated to preprocessing, in GB"
  timeout: "timeout in hours"
 }
@@ -177,12 +181,12 @@ command <<<
   v = "~{sep=' ' inputVcfs}"
   vcfFiles = v.split()
   with open("vcf_list", 'w') as l:
-      l.writelines(vcfFiles)
+      for v in vcfFiles:
+          l.write(v + "\n")
   CODE
 
-  python3 ~{combiningScript} vcf_list -c ~{outputPrefix}_combined.vcf
-  bgzip -c ~{outputPrefix}_combined.vcf > ~{outputPrefix}_combined.vcf.gz
-  tabix -p vcf ~{outputPrefix}_combined.vcf.gz 
+  python3 ~{combiningScript} vcf_list -c ~{outputPrefix}_tmp.vcf -n ~{sep=',' inputNames}
+  gatk SortVcf -I ~{outputPrefix}_tmp.vcf -R ~{referenceFasta} -O ~{outputPrefix}_combined.vcf.gz
 >>>
 
 runtime {

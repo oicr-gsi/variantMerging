@@ -8,7 +8,6 @@ import subprocess
 
 
 def _zip_fields(array, max_value=None):
-    # TODO: ask Miguel about this (checking nested array for emptiness?)
     if array is None or len(array) == 0 or not any(array):
         return []
 
@@ -134,20 +133,11 @@ def combine_caller_vcfs(list):
     variants = {}
     called_by = {}
     for name, file in list.items():
-        # TODO ask Miguel about this (why we are getting this if tumor_sample gets set below)
         tumor_id = guess_vcf_tumor_sample(file)
         vcf_lines = get_data_lines(file)
         for line in vcf_lines:
-            # TODO: ask Miguel about this (is the intention to process matched calls only?)
             chrom, pos, rsid, ref, alt, qual, vfilter, info, vformat, normal_sample, tumor_sample, *rest = line.split('\t')
             swap_samples = tumor_id == fields[-2] or fields[-1] == "NORMAL"
-            # TODO : ask Miguel about this (how do we check for swapped TUMOR and NORMAL)
-            #if len(vformat.split(":")) == 10:
-            #    sample1, sample2 = vformat.split(":")[-2:]
-            #    swap_samples: bool = sample1 == tumor_sample
-            #else:
-            #    sample2 = vformat.split(":")[-1]
-            #    swap_samples = False
             if swap_samples:
                 normal_sample, tumor_sample = tumor_sample, normal_sample
             mutation = ":".join([chrom, pos, ref, alt])
