@@ -8,7 +8,7 @@
             "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariants.timeout": null,
-            "variantMerging.combineVariants.modules": "tabix/0.2.6 varmerge-scripts/2.0",
+            "variantMerging.combineVariants.modules": "varmerge-scripts/2.0 hg19/p13 gatk/4.2.6.1",
             "variantMerging.inputVcfs": [
                 {
                     "left": {
@@ -126,7 +126,7 @@
             "variantMerging.combineVariants.outputPrefix": null,
             "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.timeout": null,
-            "variantMerging.combineVariants.modules": "tabix/0.2.6 varmerge-scripts/2.0",
+            "variantMerging.combineVariants.modules": "varmerge-scripts/2.0 hg19/p13 gatk/4.2.6.1",
             "variantMerging.inputVcfs": [
                 {
                     "left": {
@@ -243,7 +243,7 @@
             "variantMerging.combineVariants.outputPrefix": null,
             "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.timeout": null,
-            "variantMerging.combineVariants.modules": "hg19/p13 varmerge-scripts/2.0 java/9",
+            "variantMerging.combineVariants.modules": "varmerge-scripts/2.0 hg19/p13 gatk/4.2.6.1",
             "variantMerging.inputVcfs": [
                 {
                     "left": {
