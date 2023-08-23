@@ -3,6 +3,9 @@
         "arguments": {
             "variantMerging.mergeVcfs.modules": "gatk/4.2.6.1 tabix/0.2.6",
             "variantMerging.combineVariants.jobMemory": null,
+            "variantMerging.combineVariants.inputNames": null,
+            "variantMerging.combineVariants.outputPrefix": null,
+            "variantMerging.combineVariants.referenceFasta": null,
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.combineVariants.modules": "tabix/0.2.6 varmerge-scripts/2.0",
@@ -119,6 +122,9 @@
             "variantMerging.mergeVcfs.modules": "gatk/4.2.6.1 tabix/0.2.6",
             "variantMerging.combineVariants.jobMemory": null,
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
+            "variantMerging.combineVariants.inputNames": null,
+            "variantMerging.combineVariants.outputPrefix": null,
+            "variantMerging.combineVariants.referenceFasta": null,
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.combineVariants.modules": "tabix/0.2.6 varmerge-scripts/2.0",
             "variantMerging.inputVcfs": [
@@ -233,6 +239,9 @@
             "variantMerging.mergeVcfs.modules": "gatk/4.2.6.1 tabix/0.2.6",
             "variantMerging.combineVariants.jobMemory": null,
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
+            "variantMerging.combineVariants.inputNames": null,
+            "variantMerging.combineVariants.outputPrefix": null,
+            "variantMerging.combineVariants.referenceFasta": null,
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.combineVariants.modules": "hg19/p13 varmerge-scripts/2.0 java/9",
             "variantMerging.inputVcfs": [
