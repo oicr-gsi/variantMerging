@@ -268,7 +268,7 @@
                                 {
                                     "id": "TEST",
                                     "provider": "TEST"
-                                }`
+                                }
                             ]
                         },
                         "type": "EXTERNAL"
