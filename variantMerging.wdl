@@ -74,7 +74,7 @@ input {
  String referenceId
  String referenceFasta
  String preprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
- String modules = "gatk/4.2.6.1 varmerge-scripts/1.9 tabix/0.2.6"
+ String modules = "gatk/4.2.6.1 varmerge-scripts/2.0 tabix/0.2.6"
  Int jobMemory = 12
  Int timeout = 10
 }
@@ -156,8 +156,8 @@ input {
  Array[File] inputVcfs
  Array[String] inputNames
  String outputPrefix
- String modules
- String combiningScript
+ String modules = "varmerge-scripts/2.0 gatk/4.2.6.1"
+ String combiningScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"
  String referenceFasta
  Int jobMemory = 12
  Int timeout = 20
