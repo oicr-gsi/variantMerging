@@ -6,7 +6,7 @@
             "variantMerging.combineVariants.jobMemory": null,
             "variantMerging.combineVariants.inputNames": null,
             "variantMerging.combineVariants.outputPrefix": null,
-            "variantMerging.combineVariants.referenceFasta": null,
+            "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.combineVariants.modules": null,
@@ -48,7 +48,7 @@
             "variantMerging.preprocessVcf.jobMemory": null,
             "variantMerging.preprocessVcf.modules": null,
             "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
-            "variantMerging.preprocessVcf.referenceFasta": null,
+            "variantMerging.preprocessVcf.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.preprocessVcf.referenceId": null,
             "variantMerging.preprocessVcf.timeout": null
         },
@@ -126,7 +126,7 @@
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariants.inputNames": null,
             "variantMerging.combineVariants.outputPrefix": null,
-            "variantMerging.combineVariants.referenceFasta": null,
+            "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.combineVariants.modules": null,
             "variantMerging.inputVcfs": [
@@ -167,7 +167,7 @@
             "variantMerging.preprocessVcf.jobMemory": null,
             "variantMerging.preprocessVcf.modules": null,
             "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
-            "variantMerging.preprocessVcf.referenceFasta": null,
+            "variantMerging.preprocessVcf.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.preprocessVcf.referenceId": null,
             "variantMerging.preprocessVcf.timeout": null
         },
@@ -244,7 +244,7 @@
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariants.inputNames": null,
             "variantMerging.combineVariants.outputPrefix": null,
-            "variantMerging.combineVariants.referenceFasta": null,
+            "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.combineVariants.modules": null,
             "variantMerging.inputVcfs": [
@@ -301,7 +301,7 @@
             "variantMerging.preprocessVcf.jobMemory": null,
             "variantMerging.preprocessVcf.modules": null,
             "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
-            "variantMerging.preprocessVcf.referenceFasta": null,
+            "variantMerging.preprocessVcf.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.preprocessVcf.referenceId": null,
             "variantMerging.preprocessVcf.timeout": null
         },
