@@ -1,7 +1,13 @@
 version 1.0
 
+struct GenomeResources {
+    String refModule
+    String refFasta
+}
+
 workflow variantMerging {
 input {
+  String reference
   Array[Pair[File, String]] inputVcfs
   String outputFileNamePrefix = ""
 }
@@ -13,24 +19,57 @@ parameter_meta {
   outputFileNamePrefix: "Output prefix to prefix output file names with."
 }
 
+Map[String,GenomeResources] resources = {
+  "hg19": {
+    "refModule": "h19/p13", 
+    "refFasta": "$HG19_GRIDSS_INDEX_ROOT/hg19_random.fa"
+  },
+  "hg38": {
+    "refModule": "hg38/p12",
+    "refFasta": "$HG38_GRIDSS_INDEX_ROOT/hg38_random.fa"
+  },
+  "mm10": {
+    "refModule": "mm10/p6",
+    "refFasta": "$HG38_GRIDSS_INDEX_ROOT/hg38_random.fa"
+  }
+}
+
 # Preprocess vcf files
 scatter (v in inputVcfs) {
-  call preprocessVcf { input: vcfFile = v.left, producerWorkflow = v.right }
+  call preprocessVcf {
+    input: 
+       vcfFile = v.left, 
+       producerWorkflow = v.right, 
+       modules = resources[reference].refModule + " gatk/4.2.6.1 varmerge-scripts/2.0 tabix/0.2.6", 
+       referenceId = reference,
+       referenceFasta = resources[reference].refFasta
+  }
 }
 
 # Do merging (two ways)
 # Merge using MergeVcfs (Picard) 
-call mergeVcfs { input: inputVcfs = preprocessVcf.processedVcf, outputPrefix = sampleID }
+call mergeVcfs {
+  input:
+     inputVcfs = preprocessVcf.processedVcf,
+     outputPrefix = sampleID,
+     modules = "gatk/4.2.6.1 tabix/0.2.6"
+}
 
 # Combine using Custom script
-call combineVariants {input: inputVcfs = preprocessVcf.processedVcf, inputNames = preprocessVcf.prodWorkflow, outputPrefix = sampleID }
+call combineVariants {
+  input: 
+     inputVcfs = preprocessVcf.processedVcf,
+     inputNames = preprocessVcf.prodWorkflow,
+     outputPrefix = sampleID,
+     modules = resources[reference].refModule + " varmerge-scripts/2.0 gatk/4.2.6.1"
+}
 
 meta {
   author: "Peter Ruzanov"
   email: "peter.ruzanov@oicr.on.ca"
   description: "VariantMerging 2.1, a workflow for combining variant calls from SNV analyses done with different callers\n### Pre-processing\n\nThe script used at this step performs the following tasks:\n\n* removes non-canonical contigs\n* adds GT and AD fields (dot or calculated based on NT, SGT, if available)\n* removes tool-specific header lines\n\n## Overview\n\n![vmerging flowchart](docs/VARMERGE_specs.png)"
   dependencies: [
-     {
+      {
         name: "java/9",
         url: "https://github.com/AdoptOpenJDK/openjdk9-binaries/releases/download/jdk-9%2B181/OpenJDK9U-jdk_x64_linux_hotspot_9_181.tar.gz"
       },
@@ -51,8 +90,6 @@ meta {
       postprocessedVcf: "post-processed combined vcf file with updated set field for overlapping calls",
       postprocessedIndex: "index of post-processed vcf file"
     }
-  
-
 }
 
 output {
@@ -74,7 +111,7 @@ input {
  String referenceId
  String referenceFasta
  String preprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
- String modules = "gatk/4.2.6.1 varmerge-scripts/2.0 tabix/0.2.6"
+ String modules
  Int jobMemory = 12
  Int timeout = 10
 }
