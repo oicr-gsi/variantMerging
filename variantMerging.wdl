@@ -22,15 +22,15 @@ parameter_meta {
 Map[String,GenomeResources] resources = {
   "hg19": {
     "refModule": "h19/p13", 
-    "refFasta": "$HG19_GRIDSS_INDEX_ROOT/hg19_random.fa"
+    "refFasta": "$HG19_ROOT/hg19_random.fa"
   },
   "hg38": {
     "refModule": "hg38/p12",
-    "refFasta": "$HG38_GRIDSS_INDEX_ROOT/hg38_random.fa"
+    "refFasta": "$HG38_ROOT/hg38_random.fa"
   },
   "mm10": {
     "refModule": "mm10/p6",
-    "refFasta": "$HG38_GRIDSS_INDEX_ROOT/hg38_random.fa"
+    "refFasta": "$MM10_ROOT/mm10.fa"
   }
 }
 
