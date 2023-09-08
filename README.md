@@ -33,18 +33,12 @@ java -jar cromwell.jar run variantMerging.wdl --inputs inputs.json
 Parameter|Value|Description
 ---|---|---
 `inputVcfs`|Array[Pair[File,String]]|Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls).
-`preprocessVcf.referenceId`|String|String that shows the id of the reference assembly
-`preprocessVcf.referenceFasta`|String|path to the reference FASTA file
-`combineVariants.modules`|String|modules for running preprocessing
-`combineVariants.combiningScript`|String|Path to combining script
-`combineVariants.referenceFasta`|String|path to the reference FASTA file
-
+`reference`|String|Reference assmbly id, passed by the respective olive
 
 #### Optional workflow parameters:
 Parameter|Value|Default|Description
 ---|---|---|---
 `outputFileNamePrefix`|String|""|Output prefix to prefix output file names with.
-
 
 #### Optional task parameters:
 Parameter|Value|Default|Description
@@ -74,31 +68,31 @@ Output | Type | Description
  
  This section lists command(s) run by variantMerging workflow
  
- ### Preprocessing
+### Preprocessing
   
- ```
+```
   python3 PREPROCESSING_SCRIPT VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID
   
   bgzip -c VCF_FILE_BASENAME_tmp.vcf > VCF_FILE_BASENAME_tmp.vcf.gz
   gatk SortVcf -I VCF_FILE_BASENAME_tmp.vcf.gz 
                -R REF_FASTA 
                -O VCF_FILE_BASENAME_processed.vcf.gz
- ```
+```
   
- ### Merging vcf files
+### Merging vcf files
   
- This is a simple concatenation of input vcfs, there may be duplicate entries for the same call if multiple callers discover the same variant.
+This is a simple concatenation of input vcfs, there may be duplicate entries for the same call if multiple callers discover the same variant.
   
- ```
+```
   gatk MergeVcfs -I INPUT_VCFS -O PREFIX_mergedVcfs.vcf.gz
   
- ```
+```
   
- ### Combining vcf files
+### Combining vcf files
   
  A more complex merging: matching fields will be annotated by caller.
   
- ```
+```
  
    set -euxo pipefail 
    python3 <<CODE
@@ -113,8 +107,9 @@ Output | Type | Description
    python3 COMBINING_SCRIPT vcf_list -c OUTPUT_PREFIX_tmp.vcf -n ~{sep=',' inputNames}
    gatk SortVcf -I OUTPUT_PREFIX_tmp.vcf -R REFERENCE_FASTA -O OUTPUT_PREFIX_combined.vcf.gz
  
- ```
- ## Support
+```
+
+## Support
 
 For support, please file an issue on the [Github project](https://github.com/oicr-gsi) or send an email to gsi@oicr.on.ca .
 

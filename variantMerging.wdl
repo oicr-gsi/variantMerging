@@ -15,13 +15,14 @@ input {
 String sampleID = if outputFileNamePrefix=="" then basename(inputVcfs[0].left, ".vcf.gz") else outputFileNamePrefix
 
 parameter_meta {
+  reference: "Reference assmbly id, passed by the respective olive"
   inputVcfs: "Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls)."
   outputFileNamePrefix: "Output prefix to prefix output file names with."
 }
 
 Map[String,GenomeResources] resources = {
   "hg19": {
-    "refModule": "h19/p13", 
+    "refModule": "hg19/p13", 
     "refFasta": "$HG19_ROOT/hg19_random.fa"
   },
   "hg38": {
