@@ -9,10 +9,8 @@ workflow variantMerging {
 input {
   String reference
   Array[Pair[File, String]] inputVcfs
-  String outputFileNamePrefix = ""
+  String outputFileNamePrefix
 }
-
-String sampleID = if outputFileNamePrefix=="" then basename(inputVcfs[0].left, ".vcf.gz") else outputFileNamePrefix
 
 parameter_meta {
   reference: "Reference assmbly id, passed by the respective olive"
@@ -52,7 +50,7 @@ scatter (v in inputVcfs) {
 call mergeVcfs {
   input:
      inputVcfs = preprocessVcf.processedVcf,
-     outputPrefix = sampleID,
+     outputPrefix = outputFileNamePrefix,
      modules = "gatk/4.2.6.1 tabix/0.2.6"
 }
 
@@ -61,7 +59,7 @@ call combineVariants {
   input: 
      inputVcfs = preprocessVcf.processedVcf,
      inputNames = preprocessVcf.prodWorkflow,
-     outputPrefix = sampleID,
+     outputPrefix = outputFileNamePrefix,
      modules = resources[reference].refModule + " varmerge-scripts/2.0 gatk/4.2.6.1"
 }
 

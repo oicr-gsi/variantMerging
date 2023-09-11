@@ -15,7 +15,6 @@ The script used at this step performs the following tasks:
 
 ## Dependencies
 
-* [java 9](https://github.com/AdoptOpenJDK/openjdk9-binaries/releases/download/jdk-9%2B181/OpenJDK9U-jdk_x64_linux_hotspot_9_181.tar.gz)
 * [tabix 0.2.6](https://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2)
 * [gatk 4.2.6.1](https://gatk.broadinstitute.org)
 
