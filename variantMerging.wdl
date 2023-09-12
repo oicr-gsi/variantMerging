@@ -60,7 +60,8 @@ call combineVariants {
      inputVcfs = preprocessVcf.processedVcf,
      inputNames = preprocessVcf.prodWorkflow,
      outputPrefix = outputFileNamePrefix,
-     modules = resources[reference].refModule + " varmerge-scripts/2.0 gatk/4.2.6.1"
+     modules = resources[reference].refModule + " varmerge-scripts/2.0 gatk/4.2.6.1",
+     referenceFasta = resources[reference].refFasta
 }
 
 meta {
@@ -68,10 +69,6 @@ meta {
   email: "peter.ruzanov@oicr.on.ca"
   description: "VariantMerging 2.1, a workflow for combining variant calls from SNV analyses done with different callers\n### Pre-processing\n\nThe script used at this step performs the following tasks:\n\n* removes non-canonical contigs\n* adds GT and AD fields (dot or calculated based on NT, SGT, if available)\n* removes tool-specific header lines\n\n## Overview\n\n![vmerging flowchart](docs/VARMERGE_specs.png)"
   dependencies: [
-      {
-        name: "java/9",
-        url: "https://github.com/AdoptOpenJDK/openjdk9-binaries/releases/download/jdk-9%2B181/OpenJDK9U-jdk_x64_linux_hotspot_9_181.tar.gz"
-      },
       {
         name: "tabix/0.2.6",
         url: "https://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2"
@@ -156,7 +153,7 @@ input {
  String outputPrefix
  Int timeout = 20
  Int jobMemory = 12
- String modules = "gatk/4.2.6.1 tabix/0.2.6"
+ String modules
 }
 
 parameter_meta {
@@ -192,7 +189,7 @@ input {
  Array[File] inputVcfs
  Array[String] inputNames
  String outputPrefix
- String modules = "varmerge-scripts/2.0 gatk/4.2.6.1"
+ String modules
  String combiningScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"
  String referenceFasta
  Int jobMemory = 12
