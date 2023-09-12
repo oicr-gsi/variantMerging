@@ -1,3 +1,5 @@
+## 2.3.1
+- Minor change to the way of how parameters are set, this fixes a small issue that became apparent after initial testing
 ## 2.3.0
 - Modified workflow. DISCVRseq dropped, using custom consensus-marking script from Miguel Vasquez (mikisvaz@gmail.com)
 ## 2.2.0
