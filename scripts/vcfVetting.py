@@ -1,10 +1,15 @@
 import argparse
+import subprocess
+
 from vcfParsing import *
 
 parser = argparse.ArgumentParser(description='output file')
 parser.add_argument("path", type=str, help='input vcf file path')
 parser.add_argument('-o', '--output', help='output vcf file path', required=True)
 parser.add_argument('-r', '--reference', help='reference id, i.e. hg19', required=True)
+parser.add_argument('-t', '--tumor', help='tumor id, available for matched calls', required=False)
+parser.add_argument('-n', '--normal', help='normal id, available for matched calls', required=False)
+
 args = parser.parse_args()
 
 '''
@@ -137,68 +142,90 @@ def _generate_ad(ref, alt, samples):
   * If record has no filters listed, we put 'PASS' if there were filters applied (or '.' if not)
 '''
 record_lines = []
-for record in vcf_reader:
-    if re.search('_', record.CHROM):
-        continue
-    if add_gt and 'SGT' in vcf_reader.infos.keys():
-        gtStrings = _tumor_normal_genotypes(record.REF, '.' if record.ALT is None else record.ALT, record.INFO)
-    if record.ALT[0] is None:
-        continue
-
-    record_data = [record.CHROM, str(record.POS)]
-    idString = "." if record.ID is None else record.ID
-    qString = "." if record.QUAL is None else record.QUAL
-    altString = ",".join(map(str, record.ALT))
-    if record.FILTER is None or len(record.FILTER) == 0:
-        filtString = "." if len(vcf_reader.filters) == 0 else 'PASS'
-    else:
-        filtString = ";".join(record.FILTER)
-    record_data.extend([idString, record.REF, altString, qString, filtString])
-
-    """ Process INFO values, Flag type needs to be printed without value """
-    info_data = []
-    for field in record.INFO:
-        if isinstance(record.INFO[field], list):
-            info_data.append("=".join([field, ",".join(map(str, record.INFO[field]))]))
-        elif field in vcf_reader.infos.keys():
-            f_type = vcf_reader.infos[field].type
-            if f_type == 'Flag' and record.INFO[field]:
-                info_data.append(field)
-            else:
-                info_data.append("=".join([field, "." if record.INFO[field] is None else str(record.INFO[field])]))
-    info_string = ";".join(info_data) if len(info_data) > 0 else "."
-    record_data.append(info_string)
-
-    """ Add FORMAT keys """
-    format_data = ['GT:AD'] if add_gt else []
-    for field in record.FORMAT.split(":"):
-        format_data.append(field)
-    record_data.append(":".join(format_data))
-
-    """ Process FORMAT values """
-    if add_gt:
-        gt_values = [gtStrings[1], gtStrings[0]] if record.samples[0].sample == 'NORMAL' else gtStrings
-        ad_values = _generate_ad([record.REF], record.ALT, record.samples)
-    sample_data = []
-    for sample in record.samples:
-        format_data = [gt_values.pop(0), ",".join(ad_values.pop(0))] if add_gt else []
-        for field in record.FORMAT.split(":"):
-            if isinstance(sample[field], list):
-                format_data.append(",".join(map(str, sample[field])))
-            else:
-                format_data.append("." if sample[field] is None else str(sample[field]))
-        sample_data.append(":".join(format_data))
-    if swap_nt:
-        sample_data.reverse()
-    for s in sample_data:
-        record_data.append(s)
-    record_lines.append("\t".join(record_data) + "\n")
 
 '''
+  If we have names for tumor or normal passed, just read the lines from vcf into record_lines array 
+'''
+if args.tumor:
+    print("We have sample names, will not parse record - only updating the header")
+    try:
+        vcf = args.path
+        if vcf.endswith('.gz'):
+            grep_output = subprocess.check_output(f"zgrep -v ^# '{vcf}'", shell=True).decode().strip()
+        else:
+            grep_output = subprocess.check_output(f"grep -v ^# '{vcf}'", shell=True).decode().strip()
+        d = "\n"
+        record_lines = [e+d for e in grep_output.split(d) if e]
+    except subprocess.CalledProcessError:
+        print("ERROR reading record lines!")
+else:
+    for record in vcf_reader:
+        if args.tumor:
+            record_data = [record.CHROM, str(record.POS)]
+
+        if re.search('_', record.CHROM):
+            continue
+        if add_gt and 'SGT' in vcf_reader.infos.keys():
+            gtStrings = _tumor_normal_genotypes(record.REF, '.' if record.ALT is None else record.ALT, record.INFO)
+        if record.ALT[0] is None:
+            continue
+
+        record_data = [record.CHROM, str(record.POS)]
+        idString = "." if record.ID is None else record.ID
+        qString = "." if record.QUAL is None else record.QUAL
+        altString = ",".join(map(str, record.ALT))
+        if record.FILTER is None or len(record.FILTER) == 0:
+            filtString = "." if len(vcf_reader.filters) == 0 else 'PASS'
+        else:
+            filtString = ";".join(record.FILTER)
+        record_data.extend([idString, record.REF, altString, qString, filtString])
+
+        """ Process INFO values, Flag type needs to be printed without value """
+        info_data = []
+        for field in record.INFO:
+            if isinstance(record.INFO[field], list):
+                info_data.append("=".join([field, ",".join(map(str, record.INFO[field]))]))
+            elif field in vcf_reader.infos.keys():
+                f_type = vcf_reader.infos[field].type
+                if f_type == 'Flag' and record.INFO[field]:
+                    info_data.append(field)
+                else:
+                    info_data.append("=".join([field, "." if record.INFO[field] is None else str(record.INFO[field])]))
+        info_string = ";".join(info_data) if len(info_data) > 0 else "."
+        record_data.append(info_string)
+
+        """ Add FORMAT keys """
+        format_data = ['GT:AD'] if add_gt else []
+        for field in record.FORMAT.split(":"):
+            format_data.append(field)
+        record_data.append(":".join(format_data))
+
+        """ Process FORMAT values """
+        if add_gt:
+            gt_values = [gtStrings[1], gtStrings[0]] if record.samples[0].sample == 'NORMAL' else gtStrings
+            ad_values = _generate_ad([record.REF], record.ALT, record.samples)
+        sample_data = []
+        for sample in record.samples:
+            format_data = [gt_values.pop(0), ",".join(ad_values.pop(0))] if add_gt else []
+            for field in record.FORMAT.split(":"):
+                if isinstance(sample[field], list):
+                    format_data.append(",".join(map(str, sample[field])))
+                else:
+                    format_data.append("." if sample[field] is None else str(sample[field]))
+            sample_data.append(":".join(format_data))
+        if swap_nt:
+            sample_data.reverse()
+        for s in sample_data:
+            record_data.append(s)
+        record_lines.append("\t".join(record_data) + "\n")
+
+'''
+   Adjust header lines if we have names for tumor/normal
    PRINTING OUTPUT: the output file name is passed via -o option
 '''
+vetted_headers = inject_names(header_lines, args.tumor, args.normal) if args.tumor else header_lines
 
 with open(args.output, mode='+w') as out:
-    out.writelines(header_lines)
+    out.writelines(vetted_headers)
     out.writelines(record_lines)
 out.close()

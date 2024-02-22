@@ -1,7 +1,6 @@
 """
-Script for execution of two tasks -
-* combine_vcfs
-* consensus_vcf
+   Script organizes inputs and execute VariantConsensus task -
+   * combine_caller_vcfs
 """
 import argparse
 import os
@@ -14,7 +13,6 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--combined', help='combined vcf file path', required=False, default="combined.vcf")
     args = parser.parse_args()
 
-    # Check if file exists
     if os.path.exists(args.list):
         print("Combining variants")
         vcf_list = {}

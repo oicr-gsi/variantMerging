@@ -58,7 +58,6 @@ def generate_header(vcf_reader: vcf.Reader, reference: str):
     ''' 
         Process contigs
     '''
-
     for c in vcf_reader.contigs:
         if re.search('_', vcf_reader.contigs[c].id):
             continue
@@ -68,9 +67,23 @@ def generate_header(vcf_reader: vcf.Reader, reference: str):
                             str(vcf_reader.contigs[c].length) +
                             ",assembly=" + reference + ">\n")
 
-    header_fields = ['CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT', 'NORMAL', 'TUMOR']
+    if isinstance(vcf_reader.samples, list) and len(vcf_reader.samples) == 2:
+        header_fields = ['CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT', 'NORMAL', 'TUMOR']
+    else:
+        header_fields = ['CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT', 'TUMOR']
     header_lines.append("#" + "\t".join(header_fields) + "\n")
     return header_lines
 
-
-
+def inject_names(header_lines: list, tumor_name: str, normal_name: str):
+    header_titles = header_lines[-1].rstrip().split("\t")
+    try:
+        if len(header_titles) >= 10 and tumor_name is not None:
+            header_titles[-1] = tumor_name
+        if len(header_titles) >= 11 and normal_name is not None:
+            header_titles[-2] = normal_name
+        parsed_headers = "\t".join(header_titles) + "\n"
+        header_lines.pop()
+        header_lines.append(parsed_headers)
+    except:
+        print("Error injecting names")
+    return header_lines
