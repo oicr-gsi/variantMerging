@@ -1,13 +1,13 @@
 """
-This module is a re-coded combine_vcfs.rb from VariantConsensus repo maintained by Miguel Vazquez (mikisvaz@gmail.com)
-check and correction of order of samples, pre-processing vcf header
+   This module is a re-coded combine_vcfs.rb from VariantConsensus repo maintained by Miguel Vazquez (mikisvaz@gmail.com)
+   check and correction of order of samples, pre-processing vcf header
+   https://github.com/Rbbt-Workflows/VariantConsensus/blob/main/lib/VariantConsensus
 """
-import csv
 import gzip
 import subprocess
 
 
-def _zip_fields(array, max_value=None):
+def _zip_fields(array: list, max_value=None):
     if array is None or len(array) == 0 or not any(array):
         return []
 
@@ -22,7 +22,7 @@ def _zip_fields(array, max_value=None):
     return list(zip(first, *rest))
 
 
-def zip_fields(array):
+def zip_fields(array: list):
     if len(array) < 10000:
         return _zip_fields(array)
     else:
@@ -39,7 +39,7 @@ def zip_fields(array):
         return new
 
 
-def get_comment_lines(file_path):
+def get_comment_lines(file_path: str):
     if file_path.endswith('.gz'):
         with gzip.open(file_path, 'rt') as file:
             comment_lines = [line.strip() for line in file if line.startswith('#')]
@@ -50,7 +50,7 @@ def get_comment_lines(file_path):
             return comment_lines
 
 
-def get_data_lines(file_path):
+def get_data_lines(file_path: str):
     if file_path.endswith('.gz'):
         with gzip.open(file_path, 'rt') as file:
             data_lines = [line.strip() for line in file if not line.startswith('#')]
@@ -60,7 +60,7 @@ def get_data_lines(file_path):
             data_lines = [line.strip() for line in file if not line.startswith('#')]
             return data_lines
 
-def guess_vcf_tumor_sample(vcf):
+def guess_vcf_tumor_sample(vcf: str):
     try:
         if vcf.endswith('.gz'):
             grep_output = subprocess.check_output(f"zgrep 'tumor_sample=' '{vcf}'", shell=True).decode().strip()
@@ -90,15 +90,12 @@ def guess_vcf_tumor_sample(vcf):
             return fields[-1]
 
 
-def combine_caller_vcfs(list):
+def combine_caller_vcfs(call_list: dict):
     preambles = {}
-    for name, file in list.items():
+    for name, file in call_list.items():
         preambles[name] = get_comment_lines(file)
-        #with open(file) as f:
-        #    preambles[name] = [line for line in f.read().split("\n") if line.startswith("#")]
 
     preamble = []
-
     fields = None
 
     for name, lines in preambles.items():
@@ -115,7 +112,7 @@ def combine_caller_vcfs(list):
 
     preamble.append('##INFO=<ID=CalledBy,Number=.,Type=String,Description="Callers calling this variant">')
 
-    for name in list.keys():
+    for name in call_list.keys():
         if not any(l for l in preamble if "FILTER" in l and f"{name}--PASS" in l):
             preamble.append(f"##FILTER=<ID={name}--PASS,Description=\"Passes {name} filter\">")
 
@@ -132,23 +129,22 @@ def combine_caller_vcfs(list):
 
     variants = {}
     called_by = {}
-    for name, file in list.items():
+    for name, file in call_list.items():
         tumor_id = guess_vcf_tumor_sample(file)
         vcf_lines = get_data_lines(file)
         for line in vcf_lines:
+            # TODO: introduce a support for tumor-only data in our script sometime in a future
             chrom, pos, rsid, ref, alt, qual, vfilter, info, vformat, normal_sample, tumor_sample, *rest = line.split('\t')
             swap_samples = tumor_id == fields[-2] or fields[-1] == "NORMAL"
             if swap_samples:
                 normal_sample, tumor_sample = tumor_sample, normal_sample
+                fields[-1], fields[-2] = fields[-2], fields[-1]
             mutation = ":".join([chrom, pos, ref, alt])
             vfilter = ";".join([f"{name}--{f}" for f in vfilter.split(";") if f != "."])
             info = ";".join([f"{name}--{f}" for f in info.split(";") if f != "."])
             vformat = ":".join([f"{name}--{f}" for f in vformat.split(":") if f != "."])
             variants.setdefault(mutation, []).append([vfilter, info, vformat, normal_sample, tumor_sample] + rest)
             called_by.setdefault(mutation, []).append(name)
-
-    fields[-2] = "NORMAL"
-    fields[-1] = "TUMOR"
 
     str_ = "\n".join(preamble) + "\n"
     str_ += "\t".join(fields) + "\n"
