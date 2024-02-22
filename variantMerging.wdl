@@ -9,12 +9,16 @@ workflow variantMerging {
 input {
   String reference
   Array[Pair[File, String]] inputVcfs
+  String tumorName
+  String? normalName
   String outputFileNamePrefix
 }
 
 parameter_meta {
   reference: "Reference assmbly id, passed by the respective olive"
   inputVcfs: "Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls)."
+  tumorName: "Tumor id to use in vcf headers"
+  normalName: "Normal id to use in vcf headers, Optional"
   outputFileNamePrefix: "Output prefix to prefix output file names with."
 }
 
@@ -39,7 +43,7 @@ scatter (v in inputVcfs) {
     input: 
        vcfFile = v.left, 
        producerWorkflow = v.right, 
-       modules = resources[reference].refModule + " gatk/4.2.6.1 varmerge-scripts/2.0 tabix/0.2.6", 
+       modules = resources[reference].refModule + " gatk/4.2.6.1 varmerge-scripts/2.1 tabix/0.2.6",
        referenceId = reference,
        referenceFasta = resources[reference].refFasta
   }
@@ -60,8 +64,27 @@ call combineVariants {
      inputVcfs = preprocessVcf.processedVcf,
      inputNames = preprocessVcf.prodWorkflow,
      outputPrefix = outputFileNamePrefix,
-     modules = resources[reference].refModule + " varmerge-scripts/2.0 gatk/4.2.6.1",
+     modules = resources[reference].refModule + " varmerge-scripts/2.1 gatk/4.2.6.1",
      referenceFasta = resources[reference].refFasta
+}
+
+# Post-process vcf files, inject names into the headers for downstream compatibility
+call postprocessVcf as postprocessMerged {
+  input:
+       vcfFile = mergeVcfs.mergedVcf,
+       modules = resources[reference].refModule + " varmerge-scripts/2.1 tabix/0.2.6",
+       referenceId = reference,
+       tumorName = tumorName,
+       normalName = normalName
+}
+
+call postprocessVcf as postprocessCombined {
+  input:
+       vcfFile = combineVariants.combinedVcf,
+       modules = resources[reference].refModule + " varmerge-scripts/2.1 tabix/0.2.6",
+       referenceId = reference,
+       tumorName = tumorName,
+       normalName = normalName
 }
 
 meta {
@@ -82,23 +105,20 @@ meta {
       mergedVcf: "vcf file containing all variant calls",
       mergedIndex: "tabix index of the vcf file containing all variant calls",
       combinedVcf: "combined vcf file containing all variant calls",
-      combinedIndex: "index of combined vcf file containing all variant calls",
-      postprocessedVcf: "post-processed combined vcf file with updated set field for overlapping calls",
-      postprocessedIndex: "index of post-processed vcf file"
+      combinedIndex: "index of combined vcf file containing all variant calls"
     }
 }
 
 output {
-  File mergedVcf = mergeVcfs.mergedVcf
-  File mergedIndex = mergeVcfs.mergedIndex
-  File combinedVcf = combineVariants.combinedVcf
-  File combinedIndex = combineVariants.combinedIndex
+  File mergedVcf = postprocessMerged.processedVcf
+  File mergedIndex = postprocessMerged.processedIndex
+  File combinedVcf = postprocessCombined.processedVcf
+  File combinedIndex = postprocessCombined.processedIndex
 }
-
 }
 
 # =================================
-#  1 of 3: preprocess a vcf file 
+#  1 of 4: preprocess a vcf file 
 # =================================
 task preprocessVcf {
 input {
@@ -125,9 +145,9 @@ parameter_meta {
 
 command <<<
  set -euxo pipefail
- python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId}
- bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf.gz
- gatk SortVcf -I ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf.gz -R ~{referenceFasta} -O ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+ python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} 
+ bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+ tabix -p vcf ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
 >>>
 
 runtime {
@@ -144,7 +164,7 @@ output {
 }
 
 # ==================================================
-#  2 of 3: concat files, all variants concatenated,
+#  2 of 4: concat files, all variants concatenated,
 #  same variant may appear multiple times
 # ==================================================
 task mergeVcfs {
@@ -181,7 +201,7 @@ output {
 }
 
 # ==================================================================
-#  3 of 3: merge files with CombineVariants, merging matching fields
+#  3 of 4: merge files with CombineVariants, merging matching fields
 #  with priority defined by the order in the input array
 # ==================================================================
 task combineVariants {
@@ -218,7 +238,7 @@ command <<<
           l.write(v + "\n")
   CODE
 
-  python3 ~{combiningScript} vcf_list -c ~{outputPrefix}_tmp.vcf -n ~{sep=',' inputNames}
+  python3 ~{combiningScript} vcf_list -c ~{outputPrefix}_tmp.vcf -n ~{sep=',' inputNames} 
   gatk SortVcf -I ~{outputPrefix}_tmp.vcf -R ~{referenceFasta} -O ~{outputPrefix}_combined.vcf.gz
 >>>
 
@@ -234,3 +254,47 @@ output {
 }
 }
 
+# =======================================================================
+#  4 of 4: post-preprocess a vcf file (this is mainly for name injection)
+# =======================================================================
+task postprocessVcf {
+input {
+ File vcfFile
+ String referenceId
+ String postprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
+ String modules
+ String tumorName
+ String? normalName
+ Int jobMemory = 12
+ Int timeout = 10
+}
+
+parameter_meta {
+ vcfFile: "path to the input vcf file"
+ referenceId: "String that shows the id of the reference assembly"
+ postprocessScript: "path to postprocessing script, this is the same script we use for pre-processing"
+ tumorName: "Tumor name to use in vcf header"
+ normalName: "Normal name to use in vcf header, Optional"
+ modules: "modules for running preprocessing"
+ jobMemory: "memory allocated to preprocessing, in gigabytes"
+ timeout: "timeout in hours"
+}
+
+command <<<
+ set -euxo pipefail
+ python3 ~{postprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} -t ~{tumorName} ~{"-n " + normalName}
+ bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}.vcf.gz
+ tabix -p vcf ~{basename(vcfFile, '.vcf.gz')}.vcf.gz
+>>>
+
+runtime {
+  memory:  "~{jobMemory} GB"
+  modules: "~{modules}"
+  timeout: "~{timeout}"
+}
+
+output {
+  File processedVcf   = "~{basename(vcfFile, '.vcf.gz')}.vcf.gz"
+  File processedIndex = "~{basename(vcfFile, '.vcf.gz')}.vcf.gz.tbi"
+}
+}

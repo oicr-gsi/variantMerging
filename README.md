@@ -31,26 +31,35 @@ java -jar cromwell.jar run variantMerging.wdl --inputs inputs.json
 #### Required workflow parameters:
 Parameter|Value|Description
 ---|---|---
-`inputVcfs`|Array[Pair[File,String]]|Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls).
 `reference`|String|Reference assmbly id, passed by the respective olive
+`inputVcfs`|Array[Pair[File,String]]|Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls).
+`tumorName`|String|Tumor id to use in vcf headers
+`outputFileNamePrefix`|String|Output prefix to prefix output file names with.
+
 
 #### Optional workflow parameters:
 Parameter|Value|Default|Description
 ---|---|---|---
-`outputFileNamePrefix`|String|""|Output prefix to prefix output file names with.
+`normalName`|String?|None|Normal id to use in vcf headers, Optional
+
 
 #### Optional task parameters:
 Parameter|Value|Default|Description
 ---|---|---|---
 `preprocessVcf.preprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to preprocessing script
-`preprocessVcf.modules`|String|"gatk/4.2.6.1 varmerge-scripts/1.9 tabix/0.2.6"|modules for running preprocessing
 `preprocessVcf.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
 `preprocessVcf.timeout`|Int|10|timeout in hours
 `mergeVcfs.timeout`|Int|20|timeout in hours
 `mergeVcfs.jobMemory`|Int|12|Allocated memory, in GB
-`mergeVcfs.modules`|String|"gatk/4.2.6.1 tabix/0.2.6"|modules for this task
+`combineVariants.combiningScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"|Path to combining script
 `combineVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `combineVariants.timeout`|Int|20|timeout in hours
+`postprocessMerged.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
+`postprocessMerged.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
+`postprocessMerged.timeout`|Int|10|timeout in hours
+`postprocessCombined.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
+`postprocessCombined.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
+`postprocessCombined.timeout`|Int|10|timeout in hours
 
 
 ### Outputs
@@ -68,7 +77,9 @@ Output | Type | Description
  This section lists command(s) run by variantMerging workflow
  
 ### Preprocessing
-  
+ 
+ Detect NORMAL/TUMOR swap, impute missing fields (i.e. in case of such callers as strelka) 
+ 
 ```
   python3 PREPROCESSING_SCRIPT VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID
   
@@ -107,7 +118,17 @@ This is a simple concatenation of input vcfs, there may be duplicate entries for
    gatk SortVcf -I OUTPUT_PREFIX_tmp.vcf -R REFERENCE_FASTA -O OUTPUT_PREFIX_combined.vcf.gz
  
 ```
-
+### Postprocessing (Name injection)
+ 
+ The same script used for preprocessing injects names of samples into the header if argumants are passed
+ 
+```
+  set -euxo pipefail
+  python3 ~{postprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} -t ~{tumorName} ~{"-n " + normalName}
+  bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}.vcf.gz
+  tabix -p vcf ~{basename(vcfFile, '.vcf.gz')}.vcf.gz
+ 
+```
 ## Support
 
 For support, please file an issue on the [Github project](https://github.com/oicr-gsi) or send an email to gsi@oicr.on.ca .

@@ -1,3 +1,8 @@
+## 2.3.2
+- Changes to preprocessing script and the workflow: Add name injection to ensure we have VEP-compliant ids in the output vcf headers
+  Note that we still support only matched calls (no tumor-only or normal-only calls). Names of samples are mandatory (get from olive)
+  Although there is a partial support for tumor-only in the workflow (normalName is optional) at this point only matched calls
+  are fully supported.
 ## 2.3.1
 - Minor change to the way of how parameters are set, this fixes a small issue that became apparent after initial testing
 ## 2.3.0

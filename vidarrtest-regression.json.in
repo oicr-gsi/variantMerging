@@ -1,15 +1,12 @@
 [
-    {
+     {
         "arguments": {
             "variantMerging.reference": "hg19",
-            "variantMerging.mergeVcfs.modules": null,
+            "variantMerging.tumorName": "M2S_FAKE_P",
+            "variantMerging.normalName": "M2S_FAKE_R",
             "variantMerging.combineVariants.jobMemory": null,
-            "variantMerging.combineVariants.inputNames": null,
-            "variantMerging.combineVariants.outputPrefix": null,
-            "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariants.timeout": null,
-            "variantMerging.combineVariants.modules": null,
             "variantMerging.inputVcfs": [
                 {
                     "left": {
@@ -46,11 +43,14 @@
             "variantMerging.mergeVcfs.timeout": null,
             "variantMerging.outputFileNamePrefix": "TEST-M2S",
             "variantMerging.preprocessVcf.jobMemory": null,
-            "variantMerging.preprocessVcf.modules": null,
             "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
-            "variantMerging.preprocessVcf.referenceFasta": "$HG19_ROOT/hg19_random.fa",
-            "variantMerging.preprocessVcf.referenceId": null,
-            "variantMerging.preprocessVcf.timeout": null
+            "variantMerging.preprocessVcf.timeout": null,
+            "variantMerging.postprocessCombined.jobMemory": null,
+            "variantMerging.postprocessCombined.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessCombined.timeout": null,
+            "variantMerging.postprocessMerged.jobMemory": null,
+            "variantMerging.postprocessMerged.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessMerged.timeout": null
         },
         "description": "variantMerging workflow test",
         "engineArguments": {
@@ -113,7 +113,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.3/output_metrics/TEST_M2S.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.3.2/output_metrics/TEST_M2S.metrics",
                 "type": "script"
             }
         ]
@@ -121,14 +121,11 @@
     {
         "arguments": {
             "variantMerging.reference": "hg19",
-            "variantMerging.mergeVcfs.modules": null,
+            "variantMerging.tumorName": "MS_FAKE_P",
+            "variantMerging.normalName": "MS_FAKE_R",
             "variantMerging.combineVariants.jobMemory": null,
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
-            "variantMerging.combineVariants.inputNames": null,
-            "variantMerging.combineVariants.outputPrefix": null,
-            "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.timeout": null,
-            "variantMerging.combineVariants.modules": null,
             "variantMerging.inputVcfs": [
                 {
                     "left": {
@@ -165,11 +162,14 @@
             "variantMerging.mergeVcfs.timeout": null,
             "variantMerging.outputFileNamePrefix": "TEST-MS",
             "variantMerging.preprocessVcf.jobMemory": null,
-            "variantMerging.preprocessVcf.modules": null,
             "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
-            "variantMerging.preprocessVcf.referenceFasta": "$HG19_ROOT/hg19_random.fa",
-            "variantMerging.preprocessVcf.referenceId": null,
-            "variantMerging.preprocessVcf.timeout": null
+            "variantMerging.preprocessVcf.timeout": null,
+            "variantMerging.postprocessCombined.jobMemory": null,
+            "variantMerging.postprocessCombined.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessCombined.timeout": null,
+            "variantMerging.postprocessMerged.jobMemory": null,
+            "variantMerging.postprocessMerged.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessMerged.timeout": null
         },
         "description": "variantMerging workflow test",
         "engineArguments": {
@@ -231,7 +231,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.3/output_metrics/TEST_MS.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.3.2/output_metrics/TEST_MS.metrics",
                 "type": "script"
             }
         ]
@@ -239,14 +239,11 @@
     {
         "arguments": {
             "variantMerging.reference": "hg19",
-            "variantMerging.mergeVcfs.modules": null,
+            "variantMerging.tumorName": "MULTI_FAKE_P",
+            "variantMerging.normalName": "MULTI_FAKE_R",
             "variantMerging.combineVariants.jobMemory": null,
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
-            "variantMerging.combineVariants.inputNames": null,
-            "variantMerging.combineVariants.outputPrefix": null,
-            "variantMerging.combineVariants.referenceFasta": "$HG19_ROOT/hg19_random.fa",
             "variantMerging.combineVariants.timeout": null,
-            "variantMerging.combineVariants.modules": null,
             "variantMerging.inputVcfs": [
                 {
                     "left": {
@@ -295,15 +292,18 @@
                 }
             ],
             "variantMerging.mergeVcfs.jobMemory": null,
-            "variantMerging.mergeVcfs.modules": null,
             "variantMerging.mergeVcfs.timeout": null,
             "variantMerging.outputFileNamePrefix": "TEST-MULTI",
             "variantMerging.preprocessVcf.jobMemory": null,
             "variantMerging.preprocessVcf.modules": null,
             "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
-            "variantMerging.preprocessVcf.referenceFasta": "$HG19_ROOT/hg19_random.fa",
-            "variantMerging.preprocessVcf.referenceId": null,
-            "variantMerging.preprocessVcf.timeout": null
+            "variantMerging.preprocessVcf.timeout": null,
+            "variantMerging.postprocessCombined.jobMemory": null,
+            "variantMerging.postprocessCombined.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessCombined.timeout": null,
+            "variantMerging.postprocessMerged.jobMemory": null,
+            "variantMerging.postprocessMerged.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessMerged.timeout": null
         },
         "description": "variantMerging workflow test",
         "engineArguments": {
@@ -365,7 +365,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.3/output_metrics/TEST_MULTI.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.3.2/output_metrics/TEST_MULTI.metrics",
                 "type": "script"
             }
         ]
