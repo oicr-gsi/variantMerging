@@ -43,7 +43,7 @@ scatter (v in inputVcfs) {
     input: 
        vcfFile = v.left, 
        producerWorkflow = v.right, 
-       modules = resources[reference].refModule + " gatk/4.2.6.1 varmerge-scripts/2.0 tabix/0.2.6",
+       modules = resources[reference].refModule + " gatk/4.2.6.1 varmerge-scripts/2.1 tabix/0.2.6",
        referenceId = reference,
        referenceFasta = resources[reference].refFasta
   }
@@ -64,7 +64,7 @@ call combineVariants {
      inputVcfs = preprocessVcf.processedVcf,
      inputNames = preprocessVcf.prodWorkflow,
      outputPrefix = outputFileNamePrefix,
-     modules = resources[reference].refModule + " varmerge-scripts/2.0 gatk/4.2.6.1",
+     modules = resources[reference].refModule + " varmerge-scripts/2.1 gatk/4.2.6.1",
      referenceFasta = resources[reference].refFasta
 }
 
@@ -72,7 +72,7 @@ call combineVariants {
 call postprocessVcf as postprocessMerged {
   input:
        vcfFile = mergeVcfs.mergedVcf,
-       modules = resources[reference].refModule + " varmerge-scripts/2.0 tabix/0.2.6",
+       modules = resources[reference].refModule + " varmerge-scripts/2.1 tabix/0.2.6",
        referenceId = reference,
        tumorName = tumorName,
        normalName = normalName
@@ -81,7 +81,7 @@ call postprocessVcf as postprocessMerged {
 call postprocessVcf as postprocessCombined {
   input:
        vcfFile = combineVariants.combinedVcf,
-       modules = resources[reference].refModule + " varmerge-scripts/2.0 tabix/0.2.6",
+       modules = resources[reference].refModule + " varmerge-scripts/2.1 tabix/0.2.6",
        referenceId = reference,
        tumorName = tumorName,
        normalName = normalName
@@ -105,7 +105,7 @@ meta {
       mergedVcf: "vcf file containing all variant calls",
       mergedIndex: "tabix index of the vcf file containing all variant calls",
       combinedVcf: "combined vcf file containing all variant calls",
-      combinedIndex: "index of combined vcf file containing all variant calls",
+      combinedIndex: "index of combined vcf file containing all variant calls"
     }
 }
 
