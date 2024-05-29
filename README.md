@@ -1,6 +1,7 @@
 # variantMerging
 
-VariantMerging 2.1, a workflow for combining variant calls from SNV analyses done with different callers
+VariantMerging is a workflow for combining variant calls from SNV analyses done with different callers (such as muTect2, strelka2). The workflow pre-processes input vcf files by removing non-canonical contigs, fixing fields and inferring missing values from available data. It combines calls, annotating them with caller-specific tags which allows identification of consensus variants. The workflow also uses GATK for producing merged results. In this case, all calls appear as-as. Essentially, this is a simple concatenation of the inputs.
+
 ### Pre-processing
 
 The script used at this step performs the following tasks:

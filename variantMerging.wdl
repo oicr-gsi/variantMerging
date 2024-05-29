@@ -90,7 +90,7 @@ call postprocessVcf as postprocessCombined {
 meta {
   author: "Peter Ruzanov"
   email: "peter.ruzanov@oicr.on.ca"
-  description: "VariantMerging 2.1, a workflow for combining variant calls from SNV analyses done with different callers\n### Pre-processing\n\nThe script used at this step performs the following tasks:\n\n* removes non-canonical contigs\n* adds GT and AD fields (dot or calculated based on NT, SGT, if available)\n* removes tool-specific header lines\n\n## Overview\n\n![vmerging flowchart](docs/VARMERGE_specs.png)"
+  description: "VariantMerging is a workflow for combining variant calls from SNV analyses done with different callers (such as muTect2, strelka2). The workflow pre-processes input vcf files by removing non-canonical contigs, fixing fields and inferring missing values from available data. It combines calls, annotating them with caller-specific tags which allows identification of consensus variants. The workflow also uses GATK for producing merged results. In this case, all calls appear as-as. Essentially, this is a simple concatenation of the inputs.\n### Pre-processing\n\nThe script used at this step performs the following tasks:\n\n* removes non-canonical contigs\n* adds GT and AD fields (dot or calculated based on NT, SGT, if available)\n* removes tool-specific header lines\n\n## Overview\n\n![vmerging flowchart](docs/VARMERGE_specs.png)"
   dependencies: [
       {
         name: "tabix/0.2.6",
