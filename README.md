@@ -65,12 +65,12 @@ Parameter|Value|Default|Description
 
 ### Outputs
 
-Output | Type | Description
----|---|---
-`mergedVcf`|File|vcf file containing all variant calls
-`mergedIndex`|File|tabix index of the vcf file containing all variant calls
-`combinedVcf`|File|combined vcf file containing all variant calls
-`combinedIndex`|File|index of combined vcf file containing all variant calls
+Output | Type | Description | Labels
+---|---|---|---
+`mergedVcf`|File|vcf file containing all variant calls|vidarr_label: mergedVcf
+`mergedIndex`|File|tabix index of the vcf file containing all variant calls|vidarr_label: mergedIndex
+`combinedVcf`|File|combined vcf file containing all variant calls|vidarr_label: combinedVcf
+`combinedIndex`|File|index of combined vcf file containing all variant calls|vidarr_label: combinedIndex
 
 
 ## Commands

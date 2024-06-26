@@ -1,3 +1,5 @@
+## 2.4.0 - 2024-06-25
+[GRD-797](https://jira.oicr.on.ca/browse/GRD-797) - add vidarr labels to outputs (changes to medata only)
 ## 2.3.2
 - Changes to preprocessing script and the workflow: Add name injection to ensure we have VEP-compliant ids in the output vcf headers
   Note that we still support only matched calls (no tumor-only or normal-only calls). Names of samples are mandatory (get from olive)

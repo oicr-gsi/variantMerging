@@ -102,11 +102,23 @@ meta {
       }
     ]
     output_meta: {
-      mergedVcf: "vcf file containing all variant calls",
-      mergedIndex: "tabix index of the vcf file containing all variant calls",
-      combinedVcf: "combined vcf file containing all variant calls",
-      combinedIndex: "index of combined vcf file containing all variant calls"
+    mergedVcf: {
+        description: "vcf file containing all variant calls",
+        vidarr_label: "mergedVcf"
+    },
+    mergedIndex: {
+        description: "tabix index of the vcf file containing all variant calls",
+        vidarr_label: "mergedIndex"
+    },
+    combinedVcf: {
+        description: "combined vcf file containing all variant calls",
+        vidarr_label: "combinedVcf"
+    },
+    combinedIndex: {
+        description: "index of combined vcf file containing all variant calls",
+        vidarr_label: "combinedIndex"
     }
+}
 }
 
 output {
