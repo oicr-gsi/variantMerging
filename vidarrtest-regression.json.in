@@ -225,7 +225,7 @@
             "variantMerging.ensembledIndex": {
                 "contents": [
                     {
-                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
                     }
                 ],
                 "type": "ALL"
@@ -233,7 +233,7 @@
             "variantMerging.ensembledVcf": {
                 "contents": [
                     {
-                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
                     }
                 ],
                 "type": "ALL"
@@ -365,7 +365,7 @@
             "variantMerging.ensembledIndex": {
                 "contents": [
                     {
-                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
                     }
                 ],
                 "type": "ALL"
@@ -373,7 +373,7 @@
             "variantMerging.ensembledVcf": {
                 "contents": [
                     {
-                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
                     }
                 ],
                 "type": "ALL"
