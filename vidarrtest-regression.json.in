@@ -119,7 +119,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.3.2/output_metrics/TEST_M2S.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.0/output_metrics/TEST_M2S.metrics",
                 "type": "script"
             }
         ]
@@ -243,7 +243,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.3.2/output_metrics/TEST_MS.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.0/output_metrics/TEST_MS.metrics",
                 "type": "script"
             }
         ]
@@ -383,7 +383,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.3.2/output_metrics/TEST_MULTI.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.0/output_metrics/TEST_MULTI.metrics",
                 "type": "script"
             }
         ]
