@@ -1,34 +1,21 @@
 ## Commands
 This section lists command(s) run by variantMerging workflow
 
-### Preprocessing
+* Running variantMerging
 
-Detect NORMAL/TUMOR swap, impute missing fields (i.e. in case of such callers as strelka) 
 
 ```
- python3 PREPROCESSING_SCRIPT VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID
- 
- bgzip -c VCF_FILE_BASENAME_tmp.vcf > VCF_FILE_BASENAME_tmp.vcf.gz
- gatk SortVcf -I VCF_FILE_BASENAME_tmp.vcf.gz 
-              -R REF_FASTA 
-              -O VCF_FILE_BASENAME_processed.vcf.gz
+ set -euxo pipefail
+ python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} 
+ bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+ tabix -p vcf ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
 ```
 
-### Merging vcf files
- 
-This is a simple concatenation of input vcfs, there may be duplicate entries for the same call if multiple callers discover the same variant.
- 
 ```
- gatk MergeVcfs -I INPUT_VCFS -O PREFIX_mergedVcfs.vcf.gz
- 
-```
- 
-### Combining vcf files
- 
-A more complex merging: matching fields will be annotated by caller.
- 
+ gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
 ```
 
+```
   set -euxo pipefail 
   python3 <<CODE
   import sys
@@ -39,18 +26,17 @@ A more complex merging: matching fields will be annotated by caller.
           l.write(v + "\n")
   CODE
 
-  python3 COMBINING_SCRIPT vcf_list -c OUTPUT_PREFIX_tmp.vcf -n ~{sep=',' inputNames}
-  gatk SortVcf -I OUTPUT_PREFIX_tmp.vcf -R REFERENCE_FASTA -O OUTPUT_PREFIX_combined.vcf.gz
+  python3 ~{combiningScript} vcf_list -c ~{outputPrefix}_tmp.vcf -n ~{sep=',' inputNames} 
+  gatk SortVcf -I ~{outputPrefix}_tmp.vcf -R ~{referenceFasta} -O ~{outputPrefix}_combined.vcf.gz
+```
 
 ```
-### Postprocessing (Name injection)
-
-The same script used for preprocessing injects names of samples into the header if argumants are passed
+  ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} ~{sep=' ' inputVcfs}
+```
 
 ```
  set -euxo pipefail
  python3 ~{postprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} -t ~{tumorName} ~{"-n " + normalName}
  bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}.vcf.gz
  tabix -p vcf ~{basename(vcfFile, '.vcf.gz')}.vcf.gz
-
 ```

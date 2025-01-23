@@ -68,6 +68,15 @@ call combineVariants {
      referenceFasta = resources[reference].refFasta
 }
 
+# Ensemble variant using bcbio software
+call ensembleVariants {
+  input:
+    inputVcfs = preprocessVcf.processedVcf,
+    outputPrefix = outputFileNamePrefix,
+    modules = resources[reference].refModule + " bcbio-variation-recall/0.2.6",
+    referenceFasta = resources[reference].refFasta
+}
+
 # Post-process vcf files, inject names into the headers for downstream compatibility
 call postprocessVcf as postprocessMerged {
   input:
@@ -87,9 +96,18 @@ call postprocessVcf as postprocessCombined {
        normalName = normalName
 }
 
+call postprocessVcf as postprocessEnsembled {
+  input:
+       vcfFile = ensembleVariants.ensembledVcf,
+       modules = resources[reference].refModule + " varmerge-scripts/2.1 tabix/0.2.6",
+       referenceId = reference,
+       tumorName = tumorName,
+       normalName = normalName
+}
+
 meta {
   author: "Peter Ruzanov"
-  email: "peter.ruzanov@oicr.on.ca"
+  email: "pruzanov@oicr.on.ca"
   description: "VariantMerging is a workflow for combining variant calls from SNV analyses done with different callers (such as muTect2, strelka2). The workflow pre-processes input vcf files by removing non-canonical contigs, fixing fields and inferring missing values from available data. It combines calls, annotating them with caller-specific tags which allows identification of consensus variants. The workflow also uses GATK for producing merged results. In this case, all calls appear as-as. Essentially, this is a simple concatenation of the inputs.\n### Pre-processing\n\nThe script used at this step performs the following tasks:\n\n* removes non-canonical contigs\n* adds GT and AD fields (dot or calculated based on NT, SGT, if available)\n* removes tool-specific header lines\n\n## Overview\n\n![vmerging flowchart](docs/VARMERGE_specs.png)"
   dependencies: [
       {
@@ -99,6 +117,10 @@ meta {
       {
         name: "gatk/4.2.6.1",
         url: "https://gatk.broadinstitute.org"
+      },
+      {
+        name: "bcbio-variation-recall/0.2.6",
+        url: "https://github.com/bcbio/bcbio.variation.recall/archive/refs/tags/v0.2.6.tar.gz"
       }
     ]
     output_meta: {
@@ -117,6 +139,14 @@ meta {
     combinedIndex: {
         description: "index of combined vcf file containing all variant calls",
         vidarr_label: "combinedIndex"
+    },
+    ensembledVcf: {
+        description: "endembled vcf file containing all variant calls",
+        vidarr_label: "ensembledVcf"
+    },
+    ensembledIndex: {
+        description: "index of ensembled vcf file containing all variant calls",
+        vidarr_label: "ensembledIndex"
     }
 }
 }
@@ -126,11 +156,13 @@ output {
   File mergedIndex = postprocessMerged.processedIndex
   File combinedVcf = postprocessCombined.processedVcf
   File combinedIndex = postprocessCombined.processedIndex
+  File ensembledVcf = postprocessEnsembled.processedVcf
+  File ensembledIndex = postprocessEnsembled.processedIndex
 }
 }
 
 # =================================
-#  1 of 4: preprocess a vcf file 
+#  1 of 5: preprocess a vcf file 
 # =================================
 task preprocessVcf {
 input {
@@ -176,7 +208,7 @@ output {
 }
 
 # ==================================================
-#  2 of 4: concat files, all variants concatenated,
+#  2 of 5: concat files, all variants concatenated,
 #  same variant may appear multiple times
 # ==================================================
 task mergeVcfs {
@@ -213,7 +245,7 @@ output {
 }
 
 # ==================================================================
-#  3 of 4: merge files with CombineVariants, merging matching fields
+#  3 of 5: merge files with CombineVariants, merging matching fields
 #  with priority defined by the order in the input array
 # ==================================================================
 task combineVariants {
@@ -266,8 +298,49 @@ output {
 }
 }
 
+# ==================================================================
+#  4 of 5: merge files with bcbio tool bcbio-variation-recall
+#  with priority defined by the order in the input array
+# ==================================================================
+task ensembleVariants {
+input {
+ Array[File] inputVcfs
+ String outputPrefix
+ String modules 
+ String ensembleProgram = "$BCBIO_VARIATION_RECALL_ROOT/bin/bcbio-variation-recall"
+ String referenceFasta
+ Int jobMemory = 12
+ Int timeout = 20
+}
+
+parameter_meta {
+ inputVcfs: "array of input vcf files"
+ outputPrefix: "prefix for output file"
+ modules: "modules for running preprocessing"
+ ensembleProgram: "Path to ensemble program"
+ referenceFasta: "path to the reference FASTA file"
+ jobMemory: "memory allocated to preprocessing, in GB"
+ timeout: "timeout in hours"
+}
+
+command <<<
+  ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} ~{sep=' ' inputVcfs}
+>>>
+
+runtime {
+  memory:  "~{jobMemory} GB"
+  modules: "~{modules}"
+  timeout: "~{timeout}"
+}
+
+output {
+  File ensembledVcf = "~{outputPrefix}_ensembled.vcf.gz"
+  File ensembledIndex = "~{outputPrefix}_ensembled.vcf.gz.tbi"
+}
+}
+
 # =======================================================================
-#  4 of 4: post-preprocess a vcf file (this is mainly for name injection)
+#  5 of 5: post-preprocess a vcf file (this is mainly for name injection)
 # =======================================================================
 task postprocessVcf {
 input {

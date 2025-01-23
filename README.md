@@ -18,6 +18,7 @@ The script used at this step performs the following tasks:
 
 * [tabix 0.2.6](https://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2)
 * [gatk 4.2.6.1](https://gatk.broadinstitute.org)
+* [bcbio-variation-recall 0.2.6](https://github.com/bcbio/bcbio.variation.recall/archive/refs/tags/v0.2.6.tar.gz)
 
 
 ## Usage
@@ -55,12 +56,18 @@ Parameter|Value|Default|Description
 `combineVariants.combiningScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"|Path to combining script
 `combineVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `combineVariants.timeout`|Int|20|timeout in hours
+`ensembleVariants.ensembleProgram`|String|"$BCBIO_VARIATION_RECALL_ROOT/bin/bcbio-variation-recall"|Path to ensemble program
+`ensembleVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
+`ensembleVariants.timeout`|Int|20|timeout in hours
 `postprocessMerged.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
 `postprocessMerged.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
 `postprocessMerged.timeout`|Int|10|timeout in hours
 `postprocessCombined.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
 `postprocessCombined.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
 `postprocessCombined.timeout`|Int|10|timeout in hours
+`postprocessEnsembled.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
+`postprocessEnsembled.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
+`postprocessEnsembled.timeout`|Int|10|timeout in hours
 
 
 ### Outputs
@@ -71,6 +78,8 @@ Output | Type | Description | Labels
 `mergedIndex`|File|tabix index of the vcf file containing all variant calls|vidarr_label: mergedIndex
 `combinedVcf`|File|combined vcf file containing all variant calls|vidarr_label: combinedVcf
 `combinedIndex`|File|index of combined vcf file containing all variant calls|vidarr_label: combinedIndex
+`ensembledVcf`|File|endembled vcf file containing all variant calls|vidarr_label: ensembledVcf
+`ensembledIndex`|File|index of ensembled vcf file containing all variant calls|vidarr_label: ensembledIndex
 
 
 ## Commands
@@ -119,9 +128,14 @@ This is a simple concatenation of input vcfs, there may be duplicate entries for
    gatk SortVcf -I OUTPUT_PREFIX_tmp.vcf -R REFERENCE_FASTA -O OUTPUT_PREFIX_combined.vcf.gz
  
 ```
-### Postprocessing (Name injection)
+
+### Ensemble vcfs (combine calls using bcbio approach)
  
- The same script used for preprocessing injects names of samples into the header if argumants are passed
+```
+   ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} ~{sep=' ' inputVcfs}
+```
+
+### Postprocessing (Name injection)
  
 ```
   set -euxo pipefail
@@ -130,6 +144,7 @@ This is a simple concatenation of input vcfs, there may be duplicate entries for
   tabix -p vcf ~{basename(vcfFile, '.vcf.gz')}.vcf.gz
  
 ```
+
 ## Support
 
 For support, please file an issue on the [Github project](https://github.com/oicr-gsi) or send an email to gsi@oicr.on.ca .
