@@ -57,6 +57,7 @@ Parameter|Value|Default|Description
 `combineVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `combineVariants.timeout`|Int|20|timeout in hours
 `ensembleVariants.ensembleProgram`|String|"$BCBIO_VARIATION_RECALL_ROOT/bin/bcbio-variation-recall"|Path to ensemble program
+`ensembleVariants.additionalParameters`|String?|None|Optional additional parameters for ensemble program
 `ensembleVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `ensembleVariants.timeout`|Int|20|timeout in hours
 `postprocessMerged.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
@@ -132,7 +133,7 @@ This is a simple concatenation of input vcfs, there may be duplicate entries for
 ### Ensemble vcfs (combine calls using bcbio approach)
  
 ```
-   ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} ~{sep=' ' inputVcfs}
+   ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} ~{additionalParameters} ~{sep=' ' inputVcfs}
 ```
 
 ### Postprocessing (Name injection)

@@ -8,6 +8,7 @@
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.ensembleVariants.ensembleProgram": null,
+            "variantMerging.ensembleVariants.additionalParameters": null,
             "variantMerging.ensembleVariants.jobMemory": null,
             "variantMerging.ensembleVariants.timeout": null,
             "variantMerging.inputVcfs": [
@@ -133,6 +134,7 @@
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.ensembleVariants.ensembleProgram": null,
+            "variantMerging.ensembleVariants.additionalParameters": null,
             "variantMerging.ensembleVariants.jobMemory": null,
             "variantMerging.ensembleVariants.timeout": null,
             "variantMerging.inputVcfs": [
@@ -257,6 +259,7 @@
             "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariants.timeout": null,
             "variantMerging.ensembleVariants.ensembleProgram": null,
+            "variantMerging.ensembleVariants.additionalParameters": null,
             "variantMerging.ensembleVariants.jobMemory": null,
             "variantMerging.ensembleVariants.timeout": null,
             "variantMerging.inputVcfs": [

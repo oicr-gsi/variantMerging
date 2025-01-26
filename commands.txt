@@ -31,7 +31,7 @@ This section lists command(s) run by variantMerging workflow
 ```
 
 ```
-  ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} ~{sep=' ' inputVcfs}
+  ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} ~{additionalParameters} ~{sep=' ' inputVcfs}
 ```
 
 ```
