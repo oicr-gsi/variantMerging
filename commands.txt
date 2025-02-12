@@ -3,17 +3,26 @@ This section lists command(s) run by variantMerging workflow
 
 * Running variantMerging
 
+### Preprocessing
+
+A vetting script makes sure we have matching formats used across vcf, in addition making separate vcf files with only PASS calls
 
 ```
  set -euxo pipefail
  python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} 
  bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
- tabix -p vcf ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+ bcftools view -f "PASS" ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz | bgzip -c > ~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz
 ```
+
+### Merge variants with GATK (picard)
 
 ```
  gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
 ```
+
+### Customized combining of the variants
+
+This step is custom-scripted and the produced vcf has variants annotated in a very detailed way
 
 ```
   set -euxo pipefail 
@@ -30,9 +39,13 @@ This section lists command(s) run by variantMerging workflow
   gatk SortVcf -I ~{outputPrefix}_tmp.vcf -R ~{referenceFasta} -O ~{outputPrefix}_combined.vcf.gz
 ```
 
+### Ensemble variants with bcbio tools
+
 ```
-  ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} ~{additionalParameters} ~{sep=' ' inputVcfs}
+  ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} --names ~{sep=',' inputNames} ~{additionalParameters} ~{sep=' ' inputVcfs}
 ```
+
+### Post-processing
 
 ```
  set -euxo pipefail

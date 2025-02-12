@@ -17,6 +17,7 @@ The script used at this step performs the following tasks:
 ## Dependencies
 
 * [tabix 0.2.6](https://sourceforge.net/projects/samtools/files/tabix/tabix-0.2.6.tar.bz2)
+* [bcftools 1.9](https://github.com/samtools/bcftools/releases/download/1.9/bcftools-1.9.tar.bz2)
 * [gatk 4.2.6.1](https://gatk.broadinstitute.org)
 * [bcbio-variation-recall 0.2.6](https://github.com/bcbio/bcbio.variation.recall/archive/refs/tags/v0.2.6.tar.gz)
 
@@ -24,6 +25,7 @@ The script used at this step performs the following tasks:
 ## Usage
 
 ### Cromwell
+
 ```
 java -jar cromwell.jar run variantMerging.wdl --inputs inputs.json
 ```
@@ -51,15 +53,24 @@ Parameter|Value|Default|Description
 `preprocessVcf.preprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to preprocessing script
 `preprocessVcf.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
 `preprocessVcf.timeout`|Int|10|timeout in hours
-`mergeVcfs.timeout`|Int|20|timeout in hours
-`mergeVcfs.jobMemory`|Int|12|Allocated memory, in GB
-`combineVariants.combiningScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"|Path to combining script
-`combineVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
-`combineVariants.timeout`|Int|20|timeout in hours
-`ensembleVariants.ensembleProgram`|String|"$BCBIO_VARIATION_RECALL_ROOT/bin/bcbio-variation-recall"|Path to ensemble program
-`ensembleVariants.additionalParameters`|String?|None|Optional additional parameters for ensemble program
-`ensembleVariants.jobMemory`|Int|12|memory allocated to preprocessing, in GB
-`ensembleVariants.timeout`|Int|20|timeout in hours
+`mergeVcfsAll.timeout`|Int|20|timeout in hours
+`mergeVcfsAll.jobMemory`|Int|12|Allocated memory, in GB
+`combineVariantsAll.combiningScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"|Path to combining script
+`combineVariantsAll.jobMemory`|Int|12|memory allocated to preprocessing, in GB
+`combineVariantsAll.timeout`|Int|20|timeout in hours
+`ensembleVariantsAll.ensembleProgram`|String|"$BCBIO_VARIATION_RECALL_ROOT/bin/bcbio-variation-recall"|Path to ensemble program
+`ensembleVariantsAll.additionalParameters`|String?|None|Optional additional parameters for ensemble program
+`ensembleVariantsAll.jobMemory`|Int|12|memory allocated to preprocessing, in GB
+`ensembleVariantsAll.timeout`|Int|20|timeout in hours
+`mergeVcfsPass.timeout`|Int|20|timeout in hours
+`mergeVcfsPass.jobMemory`|Int|12|Allocated memory, in GB
+`combineVariantsPass.combiningScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"|Path to combining script
+`combineVariantsPass.jobMemory`|Int|12|memory allocated to preprocessing, in GB
+`combineVariantsPass.timeout`|Int|20|timeout in hours
+`ensembleVariantsPass.ensembleProgram`|String|"$BCBIO_VARIATION_RECALL_ROOT/bin/bcbio-variation-recall"|Path to ensemble program
+`ensembleVariantsPass.additionalParameters`|String?|None|Optional additional parameters for ensemble program
+`ensembleVariantsPass.jobMemory`|Int|12|memory allocated to preprocessing, in GB
+`ensembleVariantsPass.timeout`|Int|20|timeout in hours
 `postprocessMerged.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
 `postprocessMerged.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
 `postprocessMerged.timeout`|Int|10|timeout in hours
@@ -69,6 +80,15 @@ Parameter|Value|Default|Description
 `postprocessEnsembled.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
 `postprocessEnsembled.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
 `postprocessEnsembled.timeout`|Int|10|timeout in hours
+`postprocessMergedPass.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
+`postprocessMergedPass.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
+`postprocessMergedPass.timeout`|Int|10|timeout in hours
+`postprocessCombinedPass.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
+`postprocessCombinedPass.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
+`postprocessCombinedPass.timeout`|Int|10|timeout in hours
+`postprocessEnsembledPass.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
+`postprocessEnsembledPass.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
+`postprocessEnsembledPass.timeout`|Int|10|timeout in hours
 
 
 ### Outputs
@@ -81,6 +101,12 @@ Output | Type | Description | Labels
 `combinedIndex`|File|index of combined vcf file containing all variant calls|vidarr_label: combinedIndex
 `ensembledVcf`|File|endembled vcf file containing all variant calls|vidarr_label: ensembledVcf
 `ensembledIndex`|File|index of ensembled vcf file containing all variant calls|vidarr_label: ensembledIndex
+`mergedPassVcf`|File|vcf file containing merged PASS calls|vidarr_label: mergedPassVcf
+`mergedPassIndex`|File|tabix index of the vcf file containing merged PASS calls|vidarr_label: mergedPassIndex
+`combinedPassVcf`|File|combined vcf file containing combined PASS calls|vidarr_label: combinedPassVcf
+`combinedPassIndex`|File|index of combined vcf file containing PASS calls|vidarr_label: combinedPassIndex
+`ensembledPassVcf`|File|endembled vcf file containing PASS calls|vidarr_label: ensembledPassVcf
+`ensembledPassIndex`|File|index of ensembled vcf file containing PASS calls|vidarr_label: ensembledPassIndex
 
 
 ## Commands
@@ -90,31 +116,26 @@ Output | Type | Description | Labels
 ### Preprocessing
  
  Detect NORMAL/TUMOR swap, impute missing fields (i.e. in case of such callers as strelka) 
+ A vetting script makes sure we have matching formats used across vcf, in addition making separate vcf files with only PASS calls
  
 ```
-  python3 PREPROCESSING_SCRIPT VCF_FILE -o VCF_FILE_BASENAME_tmp.vcf -r REFERENCE_ID
-  
-  bgzip -c VCF_FILE_BASENAME_tmp.vcf > VCF_FILE_BASENAME_tmp.vcf.gz
-  gatk SortVcf -I VCF_FILE_BASENAME_tmp.vcf.gz 
-               -R REF_FASTA 
-               -O VCF_FILE_BASENAME_processed.vcf.gz
-```
-  
-### Merging vcf files
-  
-This is a simple concatenation of input vcfs, there may be duplicate entries for the same call if multiple callers discover the same variant.
-  
-```
-  gatk MergeVcfs -I INPUT_VCFS -O PREFIX_mergedVcfs.vcf.gz
-  
-```
-  
-### Combining vcf files
-  
- A more complex merging: matching fields will be annotated by caller.
-  
+  set -euxo pipefail
+  python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} 
+  bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+  bcftools view -f "PASS" ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz | bgzip -c > ~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz
 ```
  
+### Merge variants with GATK (picard)
+ 
+```
+  gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
+```
+ 
+### Customized combining of the variants
+ 
+ This step is custom-scripted and the produced vcf has variants annotated in a very detailed way
+
+```
    set -euxo pipefail 
    python3 <<CODE
    import sys
@@ -133,10 +154,10 @@ This is a simple concatenation of input vcfs, there may be duplicate entries for
 ### Ensemble vcfs (combine calls using bcbio approach)
  
 ```
-   ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} ~{additionalParameters} ~{sep=' ' inputVcfs}
+   ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} --names ~{sep=',' inputNames} ~{additionalParameters} ~{sep=' ' inputVcfs}
 ```
-
-### Postprocessing (Name injection)
+ 
+### Post-processing
  
 ```
   set -euxo pipefail

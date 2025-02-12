@@ -4,13 +4,20 @@
             "variantMerging.reference": "hg19",
             "variantMerging.tumorName": "M2S_FAKE_P",
             "variantMerging.normalName": "M2S_FAKE_R",
-            "variantMerging.combineVariants.jobMemory": null,
-            "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
-            "variantMerging.combineVariants.timeout": null,
-            "variantMerging.ensembleVariants.ensembleProgram": null,
-            "variantMerging.ensembleVariants.additionalParameters": null,
-            "variantMerging.ensembleVariants.jobMemory": null,
-            "variantMerging.ensembleVariants.timeout": null,
+            "variantMerging.combineVariantsAll.jobMemory": null,
+            "variantMerging.combineVariantsAll.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
+            "variantMerging.combineVariantsAll.timeout": null,
+            "variantMerging.combineVariantsPass.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
+            "variantMerging.combineVariantsPass.jobMemory": null,
+            "variantMerging.combineVariantsPass.timeout": null,
+            "variantMerging.ensembleVariantsAll.ensembleProgram": null,
+            "variantMerging.ensembleVariantsAll.additionalParameters": null,
+            "variantMerging.ensembleVariantsAll.jobMemory": null,
+            "variantMerging.ensembleVariantsAll.timeout": null,
+            "variantMerging.ensembleVariantsPass.additionalParameters": null,
+            "variantMerging.ensembleVariantsPass.ensembleProgram": null,
+            "variantMerging.ensembleVariantsPass.jobMemory": null,
+            "variantMerging.ensembleVariantsPass.timeout": null,
             "variantMerging.inputVcfs": [
                 {
                     "left": {
@@ -43,8 +50,10 @@
                     "right": "mutect2"
                 }
             ],
-            "variantMerging.mergeVcfs.jobMemory": null,
-            "variantMerging.mergeVcfs.timeout": null,
+            "variantMerging.mergeVcfsAll.jobMemory": null,
+            "variantMerging.mergeVcfsAll.timeout": null,
+            "variantMerging.mergeVcfsPass.jobMemory": null,
+            "variantMerging.mergeVcfsPass.timeout": null,
             "variantMerging.outputFileNamePrefix": "TEST-M2S",
             "variantMerging.preprocessVcf.jobMemory": null,
             "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
@@ -52,9 +61,18 @@
             "variantMerging.postprocessCombined.jobMemory": null,
             "variantMerging.postprocessCombined.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
             "variantMerging.postprocessCombined.timeout": null,
+            "variantMerging.postprocessCombinedPass.jobMemory": null,
+            "variantMerging.postprocessCombinedPass.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessCombinedPass.timeout": null,
             "variantMerging.postprocessEnsembled.jobMemory": null,
             "variantMerging.postprocessEnsembled.postprocessScript": null,
             "variantMerging.postprocessEnsembled.timeout": null,
+            "variantMerging.postprocessEnsembledPass.jobMemory": null,
+            "variantMerging.postprocessEnsembledPass.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessEnsembledPass.timeout": null,
+            "variantMerging.postprocessMergedPass.jobMemory": null,
+            "variantMerging.postprocessMergedPass.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessMergedPass.timeout": null,
             "variantMerging.postprocessMerged.jobMemory": null,
             "variantMerging.postprocessMerged.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
             "variantMerging.postprocessMerged.timeout": null
@@ -113,7 +131,56 @@
                     }
                 ],
                 "type": "ALL"
+            },
+            "variantMerging.combinedPassIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.combinedPassVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedPassIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedPassVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.ensembledPassIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.ensembledPassVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_M2S_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
             }
+
 
         },
         "validators": [
@@ -130,13 +197,20 @@
             "variantMerging.reference": "hg19",
             "variantMerging.tumorName": "MS_FAKE_P",
             "variantMerging.normalName": "MS_FAKE_R",
-            "variantMerging.combineVariants.jobMemory": null,
-            "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
-            "variantMerging.combineVariants.timeout": null,
-            "variantMerging.ensembleVariants.ensembleProgram": null,
-            "variantMerging.ensembleVariants.additionalParameters": null,
-            "variantMerging.ensembleVariants.jobMemory": null,
-            "variantMerging.ensembleVariants.timeout": null,
+            "variantMerging.combineVariantsAll.jobMemory": null,
+            "variantMerging.combineVariantsAll.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
+            "variantMerging.combineVariantsAll.timeout": null,
+            "variantMerging.combineVariantsPass.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
+            "variantMerging.combineVariantsPass.jobMemory": null,
+            "variantMerging.combineVariantsPass.timeout": null,
+            "variantMerging.ensembleVariantsAll.ensembleProgram": null,
+            "variantMerging.ensembleVariantsAll.additionalParameters": null,
+            "variantMerging.ensembleVariantsAll.jobMemory": null,
+            "variantMerging.ensembleVariantsAll.timeout": null,
+            "variantMerging.ensembleVariantsPass.additionalParameters": null,
+            "variantMerging.ensembleVariantsPass.ensembleProgram": null,
+            "variantMerging.ensembleVariantsPass.jobMemory": null,
+            "variantMerging.ensembleVariantsPass.timeout": null,
             "variantMerging.inputVcfs": [
                 {
                     "left": {
@@ -169,18 +243,27 @@
                     "right": "mutect"
                 }
             ],
-            "variantMerging.mergeVcfs.jobMemory": null,
-            "variantMerging.mergeVcfs.timeout": null,
+            "variantMerging.mergeVcfsAll.jobMemory": null,
+            "variantMerging.mergeVcfsAll.timeout": null,
             "variantMerging.outputFileNamePrefix": "TEST-MS",
             "variantMerging.preprocessVcf.jobMemory": null,
             "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
             "variantMerging.preprocessVcf.timeout": null,
+            "variantMerging.postprocessCombinedPass.jobMemory": null,
+            "variantMerging.postprocessCombinedPass.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessCombinedPass.timeout": null,
             "variantMerging.postprocessCombined.jobMemory": null,
             "variantMerging.postprocessCombined.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
             "variantMerging.postprocessCombined.timeout": null,
+            "variantMerging.postprocessEnsembledPass.jobMemory": null,
+            "variantMerging.postprocessEnsembledPass.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessEnsembledPass.timeout": null,
             "variantMerging.postprocessEnsembled.jobMemory": null,
             "variantMerging.postprocessEnsembled.postprocessScript": null,
             "variantMerging.postprocessEnsembled.timeout": null,
+            "variantMerging.postprocessMergedPass.jobMemory": null,
+            "variantMerging.postprocessMergedPass.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessMergedPass.timeout": null,
             "variantMerging.postprocessMerged.jobMemory": null,
             "variantMerging.postprocessMerged.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
             "variantMerging.postprocessMerged.timeout": null
@@ -239,7 +322,56 @@
                     }
                 ],
                 "type": "ALL"
+            },
+            "variantMerging.combinedPassIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.combinedPassVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedPassIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedPassVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.ensembledPassIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.ensembledPassVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MS_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
             }
+
         },
         "validators": [
             {
@@ -255,13 +387,20 @@
             "variantMerging.reference": "hg19",
             "variantMerging.tumorName": "MULTI_FAKE_P",
             "variantMerging.normalName": "MULTI_FAKE_R",
-            "variantMerging.combineVariants.jobMemory": null,
-            "variantMerging.combineVariants.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
-            "variantMerging.combineVariants.timeout": null,
-            "variantMerging.ensembleVariants.ensembleProgram": null,
-            "variantMerging.ensembleVariants.additionalParameters": null,
-            "variantMerging.ensembleVariants.jobMemory": null,
-            "variantMerging.ensembleVariants.timeout": null,
+            "variantMerging.combineVariantsAll.jobMemory": null,
+            "variantMerging.combineVariantsAll.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
+            "variantMerging.combineVariantsAll.timeout": null,
+            "variantMerging.combineVariantsPass.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
+            "variantMerging.combineVariantsPass.jobMemory": null,
+            "variantMerging.combineVariantsPass.timeout": null,
+            "variantMerging.ensembleVariantsAll.ensembleProgram": null,
+            "variantMerging.ensembleVariantsAll.additionalParameters": null,
+            "variantMerging.ensembleVariantsAll.jobMemory": null,
+            "variantMerging.ensembleVariantsAll.timeout": null,
+            "variantMerging.ensembleVariantsPass.additionalParameters": null,
+            "variantMerging.ensembleVariantsPass.ensembleProgram": null,
+            "variantMerging.ensembleVariantsPass.jobMemory": null,
+            "variantMerging.ensembleVariantsPass.timeout": null,
             "variantMerging.inputVcfs": [
                 {
                     "left": {
@@ -309,19 +448,30 @@
                     "right": "mutect"
                 }
             ],
-            "variantMerging.mergeVcfs.jobMemory": null,
-            "variantMerging.mergeVcfs.timeout": null,
+            "variantMerging.mergeVcfsAll.jobMemory": null,
+            "variantMerging.mergeVcfsAll.timeout": null,
+            "variantMerging.mergeVcfsPass.jobMemory": null,
+            "variantMerging.mergeVcfsPass.timeout": null,
             "variantMerging.outputFileNamePrefix": "TEST-MULTI",
             "variantMerging.preprocessVcf.jobMemory": null,
             "variantMerging.preprocessVcf.modules": null,
             "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
             "variantMerging.preprocessVcf.timeout": null,
+            "variantMerging.postprocessCombinedPass.jobMemory": null,
+            "variantMerging.postprocessCombinedPass.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessCombinedPass.timeout": null,
             "variantMerging.postprocessCombined.jobMemory": null,
             "variantMerging.postprocessCombined.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
             "variantMerging.postprocessCombined.timeout": null,
+            "variantMerging.postprocessEnsembledPass.jobMemory": null,
+            "variantMerging.postprocessEnsembledPass.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessEnsembledPass.timeout": null,
             "variantMerging.postprocessEnsembled.jobMemory": null,
-            "variantMerging.postprocessEnsembled.postprocessScript": null,
+            "variantMerging.postprocessEnsembled.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
             "variantMerging.postprocessEnsembled.timeout": null,
+            "variantMerging.postprocessMergedPass.jobMemory": null,
+            "variantMerging.postprocessMergedPass.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
+            "variantMerging.postprocessMergedPass.timeout": null,
             "variantMerging.postprocessMerged.jobMemory": null,
             "variantMerging.postprocessMerged.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
             "variantMerging.postprocessMerged.timeout": null
@@ -380,7 +530,56 @@
                     }
                 ],
                 "type": "ALL"
+            },
+            "variantMerging.combinedPassIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.combinedPassVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedPassIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.mergedPassVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.ensembledPassIndex": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
+            },
+            "variantMerging.ensembledPassVcf": {
+                "contents": [
+                    {
+                        "outputDirectory": "@SCRATCH@/@DATE@_Workflow_variantMerging_TEST_MULTI_@JENKINSID@"
+                    }
+                ],
+                "type": "ALL"
             }
+
         },
         "validators": [
             {
