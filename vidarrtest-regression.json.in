@@ -245,6 +245,8 @@
             ],
             "variantMerging.mergeVcfsAll.jobMemory": null,
             "variantMerging.mergeVcfsAll.timeout": null,
+            "variantMerging.mergeVcfsPass.jobMemory": null,
+            "variantMerging.mergeVcfsPass.timeout": null,
             "variantMerging.outputFileNamePrefix": "TEST-MS",
             "variantMerging.preprocessVcf.jobMemory": null,
             "variantMerging.preprocessVcf.preprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
