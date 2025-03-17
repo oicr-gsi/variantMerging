@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [GRD-829](https://jira.oicr.on.ca/browse/GRD-829) added bcbio ensemble vcfs step
 - additional output metrics
+- parameters for bcbio ensembl step
 
 ## [2.4.0] - 2024-06-25
 ### Added

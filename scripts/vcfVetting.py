@@ -172,7 +172,7 @@ else:
 
         record_data = [record.CHROM, str(record.POS)]
         idString = "." if record.ID is None else record.ID
-        qString = "." if record.QUAL is None else record.QUAL
+        qString = "." if record.QUAL is None else str(record.QUAL)
         altString = ",".join(map(str, record.ALT))
         if record.FILTER is None or len(record.FILTER) == 0:
             filtString = "." if len(vcf_reader.filters) == 0 else 'PASS'

@@ -402,6 +402,7 @@ input {
  String ensembleProgram = "$BCBIO_VARIATION_RECALL_ROOT/bin/bcbio-variation-recall"
  String referenceFasta
  String? additionalParameters
+ Int minCallers = 1
  Int jobMemory = 12
  Int timeout = 20
 }
@@ -413,13 +414,14 @@ parameter_meta {
  modules: "modules for running preprocessing"
  ensembleProgram: "Path to ensemble program"
  referenceFasta: "path to the reference FASTA file"
+ minCallers: "variant gets recorded if minimum number of callers make the call" 
  additionalParameters: "Optional additional parameters for ensemble program"
  jobMemory: "memory allocated to preprocessing, in GB"
  timeout: "timeout in hours"
 }
 
 command <<<
-  ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} --names ~{sep=',' inputNames} ~{additionalParameters} ~{sep=' ' inputVcfs}
+  ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} --names ~{sep=',' inputNames} --numpass ~{minCallers} ~{additionalParameters} ~{sep=' ' inputVcfs}
 >>>
 
 runtime {
