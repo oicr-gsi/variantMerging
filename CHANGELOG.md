@@ -14,26 +14,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - [GRD-797](https://jira.oicr.on.ca/browse/GRD-797) - add vidarr labels to outputs (changes to medata only)
 
-## [2.3.2]
+## [2.3.2] - 2024-02-22
 ### Changed
 - Changes to preprocessing script and the workflow: Add name injection to ensure we have VEP-compliant ids in the output vcf headers
   Note that we still support only matched calls (no tumor-only or normal-only calls). Names of samples are mandatory (get from olive)
   Although there is a partial support for tumor-only in the workflow (normalName is optional) at this point only matched calls
   are fully supported.
 
-## [2.3.1]
+## [2.3.1] - 2023-09-12
 ### Changed
 - Minor change to the way of how parameters are set, this fixes a small issue that became apparent after initial testing
 
-## [2.3.0]
+## [2.3.0] - 2023-09-11
 ### Changed
 - Modified workflow. DISCVRseq dropped, using custom consensus-marking script from Miguel Vasquez (mikisvaz@gmail.com)
 
-## [2.2.0]
+## [2.2.0] - 2023-04-13
 ### Added
 - Added step which runs post-processing script, new varmerge-scripts version as a default
 
-## [Unrealeased - 2023-04-11
+## [Unrealeased] - 2023-04-11
 ### Added
 - Added post-processing script, new tag for varmerge-scripts (1.8 with a bug introduced, fixed in 1.9)
 
@@ -61,6 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Fixing issues with inputs, added sorting step in preprocessing task
 
-## [2.0.0]   - 2020-07-10
+## [2.0.0] - 2020-07-10
 ### Changed
 - Converting to WDL, initial import
