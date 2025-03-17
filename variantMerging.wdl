@@ -43,7 +43,7 @@ scatter (v in inputVcfs) {
     input: 
        vcfFile = v.left, 
        producerWorkflow = v.right, 
-       modules = resources[reference].refModule + " gatk/4.2.6.1 varmerge-scripts/2.1 tabix/0.2.6 bcftools/1.9",
+       modules = resources[reference].refModule + " gatk/4.2.6.1 varmerge-scripts/2.2 tabix/0.2.6 bcftools/1.9",
        referenceId = reference,
        referenceFasta = resources[reference].refFasta
   }
@@ -64,7 +64,7 @@ call combineVariants as combineVariantsAll {
      inputVcfs = preprocessVcf.processedVcf,
      inputNames = preprocessVcf.prodWorkflow,
      outputPrefix = outputFileNamePrefix,
-     modules = resources[reference].refModule + " varmerge-scripts/2.1 gatk/4.2.6.1",
+     modules = resources[reference].refModule + " varmerge-scripts/2.2 gatk/4.2.6.1",
      referenceFasta = resources[reference].refFasta
 }
 
@@ -91,7 +91,7 @@ call combineVariants as combineVariantsPass {
      inputVcfs = preprocessVcf.processedPassVcf,
      inputNames = preprocessVcf.prodWorkflow,
      outputPrefix = outputFileNamePrefix + ".pass",
-     modules = resources[reference].refModule + " varmerge-scripts/2.1 gatk/4.2.6.1",
+     modules = resources[reference].refModule + " varmerge-scripts/2.2 gatk/4.2.6.1",
      referenceFasta = resources[reference].refFasta
 }
 
@@ -110,7 +110,7 @@ call ensembleVariants as ensembleVariantsPass {
 call postprocessVcf as postprocessMerged {
   input:
        vcfFile = mergeVcfsAll.mergedVcf,
-       modules = resources[reference].refModule + " varmerge-scripts/2.1 tabix/0.2.6",
+       modules = resources[reference].refModule + " varmerge-scripts/2.2 tabix/0.2.6",
        referenceId = reference,
        tumorName = tumorName,
        normalName = normalName
@@ -119,7 +119,7 @@ call postprocessVcf as postprocessMerged {
 call postprocessVcf as postprocessCombined {
   input:
        vcfFile = combineVariantsAll.combinedVcf,
-       modules = resources[reference].refModule + " varmerge-scripts/2.1 tabix/0.2.6",
+       modules = resources[reference].refModule + " varmerge-scripts/2.2 tabix/0.2.6",
        referenceId = reference,
        tumorName = tumorName,
        normalName = normalName
@@ -128,7 +128,7 @@ call postprocessVcf as postprocessCombined {
 call postprocessVcf as postprocessEnsembled {
   input:
        vcfFile = ensembleVariantsAll.ensembledVcf,
-       modules = resources[reference].refModule + " varmerge-scripts/2.1 tabix/0.2.6",
+       modules = resources[reference].refModule + " varmerge-scripts/2.2 tabix/0.2.6",
        referenceId = reference,
        tumorName = tumorName,
        normalName = normalName
@@ -138,7 +138,7 @@ call postprocessVcf as postprocessEnsembled {
 call postprocessVcf as postprocessMergedPass {
   input:
        vcfFile = mergeVcfsPass.mergedVcf,
-       modules = resources[reference].refModule + " varmerge-scripts/2.1 tabix/0.2.6",
+       modules = resources[reference].refModule + " varmerge-scripts/2.2 tabix/0.2.6",
        referenceId = reference,
        tumorName = tumorName,
        normalName = normalName
@@ -147,7 +147,7 @@ call postprocessVcf as postprocessMergedPass {
 call postprocessVcf as postprocessCombinedPass {
   input:
        vcfFile = combineVariantsPass.combinedVcf,
-       modules = resources[reference].refModule + " varmerge-scripts/2.1 tabix/0.2.6",
+       modules = resources[reference].refModule + " varmerge-scripts/2.2 tabix/0.2.6",
        referenceId = reference,
        tumorName = tumorName,
        normalName = normalName
@@ -156,7 +156,7 @@ call postprocessVcf as postprocessCombinedPass {
 call postprocessVcf as postprocessEnsembledPass {
   input:
        vcfFile = ensembleVariantsPass.ensembledVcf,
-       modules = resources[reference].refModule + " varmerge-scripts/2.1 tabix/0.2.6",
+       modules = resources[reference].refModule + " varmerge-scripts/2.2 tabix/0.2.6",
        referenceId = reference,
        tumorName = tumorName,
        normalName = normalName
