@@ -37,6 +37,7 @@ Parameter|Value|Description
 ---|---|---
 `reference`|String|Reference assmbly id, passed by the respective olive
 `inputVcfs`|Array[Pair[File,String]]|Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls).
+`priorities`|Array[String]|List of workflows which produced the calls, ordered by priority
 `tumorName`|String|Tumor id to use in vcf headers
 `outputFileNamePrefix`|String|Output prefix to prefix output file names with.
 
@@ -53,6 +54,8 @@ Parameter|Value|Default|Description
 `preprocessVcf.preprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to preprocessing script
 `preprocessVcf.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
 `preprocessVcf.timeout`|Int|10|timeout in hours
+`resortList.timeout`|Int|20|timeout in hours
+`resortList.jobMemory`|Int|12|Allocated memory, in GB
 `mergeVcfsAll.timeout`|Int|20|timeout in hours
 `mergeVcfsAll.jobMemory`|Int|12|Allocated memory, in GB
 `combineVariantsAll.combiningScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"|Path to combining script
@@ -60,6 +63,7 @@ Parameter|Value|Default|Description
 `combineVariantsAll.timeout`|Int|20|timeout in hours
 `ensembleVariantsAll.ensembleProgram`|String|"$BCBIO_VARIATION_RECALL_ROOT/bin/bcbio-variation-recall"|Path to ensemble program
 `ensembleVariantsAll.additionalParameters`|String?|None|Optional additional parameters for ensemble program
+`ensembleVariantsAll.minCallers`|Int|1|variant gets recorded if minimum number of callers make the call
 `ensembleVariantsAll.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `ensembleVariantsAll.timeout`|Int|20|timeout in hours
 `mergeVcfsPass.timeout`|Int|20|timeout in hours
@@ -69,6 +73,7 @@ Parameter|Value|Default|Description
 `combineVariantsPass.timeout`|Int|20|timeout in hours
 `ensembleVariantsPass.ensembleProgram`|String|"$BCBIO_VARIATION_RECALL_ROOT/bin/bcbio-variation-recall"|Path to ensemble program
 `ensembleVariantsPass.additionalParameters`|String?|None|Optional additional parameters for ensemble program
+`ensembleVariantsPass.minCallers`|Int|1|variant gets recorded if minimum number of callers make the call
 `ensembleVariantsPass.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `ensembleVariantsPass.timeout`|Int|20|timeout in hours
 `postprocessMerged.postprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to postprocessing script, this is the same script we use for pre-processing
@@ -111,7 +116,9 @@ Output | Type | Description | Labels
 
 ## Commands
  
- This section lists command(s) run by variantMerging workflow
+This section lists command(s) run by variantMerging workflow
+ 
+* Running variantMerging
  
 ### Preprocessing
  
@@ -123,6 +130,32 @@ Output | Type | Description | Labels
   python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} 
   bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
   bcftools view -f "PASS" ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz | bgzip -c > ~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz
+```
+ 
+### reorder inputs according to priority
+ 
+```
+  python3 <<CODE
+  import re
+  sorted_indices = []
+  unsortedNames = re.split(",",  "~{sep=',' unsortedWorkflows}")
+  priorities = re.split(",", "~{sep=',' priorities}")
+  unsortedFiles = re.split(",", "~{sep=',' unsortedVcfs}")
+  unsortedPassFiles = re.split(",", "~{sep=',' unsortedPassVcfs}")
+  sorted_indices = []
+  for p in  priorities:
+      if p in unsortedNames:
+          print(p + "\n")
+          sorted_indices.append(unsortedNames.index(p))
+ 
+  print(sorted_indices)
+  with open("~{sortedFiles}", mode='w') as out:
+     out.writelines([unsortedFiles[i] + "\n" for i in sorted_indices])
+  with open("~{sortedPassFiles}", mode='w') as out2:
+     out2.writelines([unsortedPassFiles[j] + "\n" for j in sorted_indices])
+  with open("~{sortedWorkflows}", mode='w') as out3:
+     out3.writelines([unsortedNames[k] + "\n" for k in sorted_indices])
+  CODE
 ```
  
 ### Merge variants with GATK (picard)
@@ -154,7 +187,7 @@ Output | Type | Description | Labels
 ### Ensemble vcfs (combine calls using bcbio approach)
  
 ```
-   ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} --names ~{sep=',' inputNames} ~{additionalParameters} ~{sep=' ' inputVcfs}
+   ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} --names ~{sep=',' inputNames} --numpass ~{minCallers} ~{additionalParameters} ~{sep=' ' inputVcfs}
 ```
  
 ### Post-processing

@@ -14,6 +14,32 @@ A vetting script makes sure we have matching formats used across vcf, in additio
  bcftools view -f "PASS" ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz | bgzip -c > ~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz
 ```
 
+### reorder inputs according to priority
+
+```
+ python3 <<CODE
+ import re
+ sorted_indices = []
+ unsortedNames = re.split(",",  "~{sep=',' unsortedWorkflows}")
+ priorities = re.split(",", "~{sep=',' priorities}")
+ unsortedFiles = re.split(",", "~{sep=',' unsortedVcfs}")
+ unsortedPassFiles = re.split(",", "~{sep=',' unsortedPassVcfs}")
+ sorted_indices = []
+ for p in  priorities:
+     if p in unsortedNames:
+         print(p + "\n")
+         sorted_indices.append(unsortedNames.index(p))
+
+ print(sorted_indices)
+ with open("~{sortedFiles}", mode='w') as out:
+    out.writelines([unsortedFiles[i] + "\n" for i in sorted_indices])
+ with open("~{sortedPassFiles}", mode='w') as out2:
+    out2.writelines([unsortedPassFiles[j] + "\n" for j in sorted_indices])
+ with open("~{sortedWorkflows}", mode='w') as out3:
+    out3.writelines([unsortedNames[k] + "\n" for k in sorted_indices])
+ CODE
+```
+
 ### Merge variants with GATK (picard)
 
 ```
@@ -42,7 +68,7 @@ This step is custom-scripted and the produced vcf has variants annotated in a ve
 ### Ensemble variants with bcbio tools
 
 ```
-  ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} --names ~{sep=',' inputNames} ~{additionalParameters} ~{sep=' ' inputVcfs}
+  ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} --names ~{sep=',' inputNames} --numpass ~{minCallers} ~{additionalParameters} ~{sep=' ' inputVcfs}
 ```
 
 ### Post-processing

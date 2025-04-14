@@ -4,6 +4,7 @@
             "variantMerging.reference": "hg19",
             "variantMerging.tumorName": "M2S_FAKE_P",
             "variantMerging.normalName": "M2S_FAKE_R",
+            "variantMerging.priorities": ["strelka", "mutect2"],
             "variantMerging.combineVariantsAll.jobMemory": null,
             "variantMerging.combineVariantsAll.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariantsAll.timeout": null,
@@ -77,7 +78,11 @@
             "variantMerging.postprocessMergedPass.timeout": null,
             "variantMerging.postprocessMerged.jobMemory": null,
             "variantMerging.postprocessMerged.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
-            "variantMerging.postprocessMerged.timeout": null
+            "variantMerging.postprocessMerged.timeout": null,
+            "variantMerging.resortList.jobMemory": null,
+            "variantMerging.resortList.timeout": null,
+            "variantMerging.resortList.jobMemory": null,
+            "variantMerging.resortList.timeout": null
         },
         "description": "variantMerging workflow test",
         "engineArguments": {
@@ -199,6 +204,7 @@
             "variantMerging.reference": "hg19",
             "variantMerging.tumorName": "MS_FAKE_P",
             "variantMerging.normalName": "MS_FAKE_R",
+            "variantMerging.priorities": ["strelka", "mutect"],
             "variantMerging.combineVariantsAll.jobMemory": null,
             "variantMerging.combineVariantsAll.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariantsAll.timeout": null,
@@ -272,7 +278,9 @@
             "variantMerging.postprocessMergedPass.timeout": null,
             "variantMerging.postprocessMerged.jobMemory": null,
             "variantMerging.postprocessMerged.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
-            "variantMerging.postprocessMerged.timeout": null
+            "variantMerging.postprocessMerged.timeout": null,
+            "variantMerging.resortList.jobMemory": null,
+            "variantMerging.resortList.timeout": null
         },
         "description": "variantMerging workflow test",
         "engineArguments": {
@@ -393,6 +401,7 @@
             "variantMerging.reference": "hg19",
             "variantMerging.tumorName": "MULTI_FAKE_P",
             "variantMerging.normalName": "MULTI_FAKE_R",
+            "variantMerging.priorities": ["strelka", "mutect2", "mutect"],
             "variantMerging.combineVariantsAll.jobMemory": null,
             "variantMerging.combineVariantsAll.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariantsAll.timeout": null,
@@ -482,7 +491,9 @@
             "variantMerging.postprocessMergedPass.timeout": null,
             "variantMerging.postprocessMerged.jobMemory": null,
             "variantMerging.postprocessMerged.postprocessScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py",
-            "variantMerging.postprocessMerged.timeout": null
+            "variantMerging.postprocessMerged.timeout": null,
+            "variantMerging.resortList.jobMemory": null,
+            "variantMerging.resortList.timeout": null
         },
         "description": "variantMerging workflow test",
         "engineArguments": {
