@@ -349,10 +349,8 @@ task resortList {
  sorted_indices = []
  for p in  priorities:
      if p in unsortedNames:
-         print(p + "\n")
          sorted_indices.append(unsortedNames.index(p))
 
- print(sorted_indices)
  with open("~{sortedFiles}", mode='w') as out:
     out.writelines([unsortedFiles[i] + "\n" for i in sorted_indices])
  with open("~{sortedPassFiles}", mode='w') as out2:
