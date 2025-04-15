@@ -266,7 +266,7 @@ output {
 }
 
 # =================================
-#  1 of 5: preprocess a vcf file 
+#  1 of 6: preprocess a vcf file 
 # =================================
 task preprocessVcf {
 input {
@@ -375,7 +375,7 @@ task resortList {
 }
 
 # ==================================================
-#  2 of 5: concat files, all variants concatenated,
+#  3 of 6: concat files, all variants concatenated,
 #  same variant may appear multiple times
 # ==================================================
 task mergeVcfs {
@@ -412,7 +412,7 @@ output {
 }
 
 # ==================================================================
-#  3 of 5: merge files with CombineVariants, merging matching fields
+#  4 of 6: merge files with CombineVariants, merging matching fields
 #  with priority defined by the order in the input array
 # ==================================================================
 task combineVariants {
@@ -466,7 +466,7 @@ output {
 }
 
 # ================================================================
-#  4 of 5: merge files with bcbio tool bcbio-variation-recall
+#  5 of 6: merge files with bcbio tool bcbio-variation-recall
 #  with priority defined by the order in the input array
 # ================================================================
 task ensembleVariants {
@@ -513,7 +513,7 @@ output {
 }
 
 # =======================================================================
-#  5 of 5: post-preprocess a vcf file (this is mainly for name injection)
+#  6 of 6: post-preprocess a vcf file (this is mainly for name injection)
 # =======================================================================
 task postprocessVcf {
 input {
