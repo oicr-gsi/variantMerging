@@ -9,6 +9,7 @@ workflow variantMerging {
 input {
   String reference
   Array[Pair[File, String]] inputVcfs
+  Array[String] priorities
   String tumorName
   String? normalName
   String outputFileNamePrefix
@@ -17,6 +18,7 @@ input {
 parameter_meta {
   reference: "Reference assmbly id, passed by the respective olive"
   inputVcfs: "Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls)."
+  priorities: "List of workflows which produced the calls, ordered by priority"
   tumorName: "Tumor id to use in vcf headers"
   normalName: "Normal id to use in vcf headers, Optional"
   outputFileNamePrefix: "Output prefix to prefix output file names with."
@@ -49,6 +51,17 @@ scatter (v in inputVcfs) {
   }
 }
 
+# Sort input list according to priority
+# Use the supplied list of workflows. Handle cases when we do not have
+# a match between data and prioritized list 
+call resortList {
+  input: 
+     unsortedVcfs = preprocessVcf.processedVcf,
+     unsortedPassVcfs = preprocessVcf.processedPassVcf,
+     unsortedWorkflows = preprocessVcf.prodWorkflow,
+     priorities = priorities
+}
+
 # Do merging (three ways)
 # Merge using MergeVcfs (Picard) 
 call mergeVcfs as mergeVcfsAll {
@@ -61,8 +74,8 @@ call mergeVcfs as mergeVcfsAll {
 # Combine using Custom script
 call combineVariants as combineVariantsAll {
   input: 
-     inputVcfs = preprocessVcf.processedVcf,
-     inputNames = preprocessVcf.prodWorkflow,
+     inputVcfs = resortList.sortedVcfs,
+     inputNames = resortList.sortedWfs,
      outputPrefix = outputFileNamePrefix,
      modules = resources[reference].refModule + " varmerge-scripts/2.2 gatk/4.2.6.1",
      referenceFasta = resources[reference].refFasta
@@ -71,8 +84,8 @@ call combineVariants as combineVariantsAll {
 # Ensemble variant using bcbio software
 call ensembleVariants as ensembleVariantsAll {
   input:
-    inputVcfs = preprocessVcf.processedVcf,
-    inputNames = preprocessVcf.prodWorkflow,
+    inputVcfs = resortList.sortedVcfs,
+    inputNames = resortList.sortedWfs,
     outputPrefix = outputFileNamePrefix,
     modules = resources[reference].refModule + " bcbio-variation-recall/0.2.6",
     referenceFasta = resources[reference].refFasta
@@ -88,8 +101,8 @@ call mergeVcfs as mergeVcfsPass {
 # Combine PASS calls using Custom script
 call combineVariants as combineVariantsPass {
   input:
-     inputVcfs = preprocessVcf.processedPassVcf,
-     inputNames = preprocessVcf.prodWorkflow,
+     inputVcfs = resortList.sortedPassVcfs,
+     inputNames = resortList.sortedWfs,
      outputPrefix = outputFileNamePrefix + ".pass",
      modules = resources[reference].refModule + " varmerge-scripts/2.2 gatk/4.2.6.1",
      referenceFasta = resources[reference].refFasta
@@ -98,8 +111,8 @@ call combineVariants as combineVariantsPass {
 # Ensemble PASS calls using bcbio software
 call ensembleVariants as ensembleVariantsPass {
   input:
-    inputVcfs = preprocessVcf.processedPassVcf,
-    inputNames = preprocessVcf.prodWorkflow,
+    inputVcfs = resortList.sortedPassVcfs,
+    inputNames = resortList.sortedWfs,
     outputPrefix = outputFileNamePrefix + ".pass",
     modules = resources[reference].refModule + " bcbio-variation-recall/0.2.6",
     referenceFasta = resources[reference].refFasta
@@ -253,7 +266,7 @@ output {
 }
 
 # =================================
-#  1 of 5: preprocess a vcf file 
+#  1 of 6: preprocess a vcf file 
 # =================================
 task preprocessVcf {
 input {
@@ -298,8 +311,69 @@ output {
 }
 }
 
+# =====================================================
+# 2 of 6: resort the input list according to priorities
+# handle edge cases
+# =====================================================
+task resortList {
+ input {
+ Array[File] unsortedVcfs
+ Array[File] unsortedPassVcfs
+ Array[String] unsortedWorkflows
+ Array[String] priorities
+ Int timeout = 20
+ Int jobMemory = 12
+ }
+
+ parameter_meta {
+  unsortedVcfs: "Array of vcf files"
+  unsortedPassVcfs: "Array of vcf files with PASS calls"
+  unsortedWorkflows: "Unsorted list of workflow names, the same order as for unsortedVcfs"
+  priorities: "Sorted list of workflows, defines priority"
+  timeout: "timeout in hours"
+  jobMemory: "Allocated memory, in GB"
+ }
+
+ String sortedFiles = "sorted.files.txt"
+ String sortedPassFiles = "sorted.pass_files.txt"
+ String sortedWorkflows = "sorted.wfs.txt"
+
+ command <<<
+ python3 <<CODE
+ import re
+ sorted_indices = []
+ unsortedNames = re.split(",",  "~{sep=',' unsortedWorkflows}")
+ priorities = re.split(",", "~{sep=',' priorities}")
+ unsortedFiles = re.split(",", "~{sep=',' unsortedVcfs}")
+ unsortedPassFiles = re.split(",", "~{sep=',' unsortedPassVcfs}")
+ sorted_indices = []
+ for p in  priorities:
+     if p in unsortedNames:
+         sorted_indices.append(unsortedNames.index(p))
+
+ with open("~{sortedFiles}", mode='w') as out:
+    out.writelines([unsortedFiles[i] + "\n" for i in sorted_indices])
+ with open("~{sortedPassFiles}", mode='w') as out2:
+    out2.writelines([unsortedPassFiles[j] + "\n" for j in sorted_indices])
+ with open("~{sortedWorkflows}", mode='w') as out3:
+    out3.writelines([unsortedNames[k] + "\n" for k in sorted_indices])
+ CODE
+ >>>
+
+ runtime {
+   memory:  "~{jobMemory} GB"
+   timeout: "~{timeout}"
+ } 
+
+ output {
+   Array[File] sortedVcfs  = read_lines("~{sortedFiles}")
+   Array[File] sortedPassVcfs = read_lines("~{sortedPassFiles}")
+   Array[String] sortedWfs = read_lines("~{sortedWorkflows}")
+ }
+}
+
 # ==================================================
-#  2 of 5: concat files, all variants concatenated,
+#  3 of 6: concat files, all variants concatenated,
 #  same variant may appear multiple times
 # ==================================================
 task mergeVcfs {
@@ -336,7 +410,7 @@ output {
 }
 
 # ==================================================================
-#  3 of 5: merge files with CombineVariants, merging matching fields
+#  4 of 6: merge files with CombineVariants, merging matching fields
 #  with priority defined by the order in the input array
 # ==================================================================
 task combineVariants {
@@ -390,7 +464,7 @@ output {
 }
 
 # ================================================================
-#  4 of 5: merge files with bcbio tool bcbio-variation-recall
+#  5 of 6: merge files with bcbio tool bcbio-variation-recall
 #  with priority defined by the order in the input array
 # ================================================================
 task ensembleVariants {
@@ -437,7 +511,7 @@ output {
 }
 
 # =======================================================================
-#  5 of 5: post-preprocess a vcf file (this is mainly for name injection)
+#  6 of 6: post-preprocess a vcf file (this is mainly for name injection)
 # =======================================================================
 task postprocessVcf {
 input {
