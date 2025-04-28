@@ -36,8 +36,7 @@ java -jar cromwell.jar run variantMerging.wdl --inputs inputs.json
 Parameter|Value|Description
 ---|---|---
 `reference`|String|Reference assmbly id, passed by the respective olive
-`inputVcfs`|Array[Pair[File,String]]|Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls).
-`priorities`|Array[String]|List of workflows which produced the calls, ordered by priority
+`inputVcfs`|Array[InputGroup]|vcf files (SNV calls from different callers) and metadata strings (producer of calls and priority).
 `tumorName`|String|Tumor id to use in vcf headers
 `outputFileNamePrefix`|String|Output prefix to prefix output file names with.
 
@@ -139,16 +138,14 @@ This section lists command(s) run by variantMerging workflow
   import re
   sorted_indices = []
   unsortedNames = re.split(",",  "~{sep=',' unsortedWorkflows}")
-  priorities = re.split(",", "~{sep=',' priorities}")
+  priorities = re.split(",", "~{sep=',' unsortedPriorities}")
   unsortedFiles = re.split(",", "~{sep=',' unsortedVcfs}")
   unsortedPassFiles = re.split(",", "~{sep=',' unsortedPassVcfs}")
   sorted_indices = []
-  for p in  priorities:
-      if p in unsortedNames:
-          print(p + "\n")
-          sorted_indices.append(unsortedNames.index(p))
+  for p in priorities:
+     if p - 1 >= 0:
+         sorted_indices.append(p -1)
  
-  print(sorted_indices)
   with open("~{sortedFiles}", mode='w') as out:
      out.writelines([unsortedFiles[i] + "\n" for i in sorted_indices])
   with open("~{sortedPassFiles}", mode='w') as out2:
