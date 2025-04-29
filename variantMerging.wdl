@@ -356,8 +356,9 @@ task resortList {
  unsortedPassFiles = re.split(",", "~{sep=',' unsortedPassVcfs}")
  sorted_indices = []
  for p in priorities:
-    if p - 1 >= 0:
-        sorted_indices.append(p -1)
+    idx = int(p)
+    if idx - 1 >= 0:
+        sorted_indices.append(idx -1)
 
  with open("~{sortedFiles}", mode='w') as out:
     out.writelines([unsortedFiles[i] + "\n" for i in sorted_indices])
