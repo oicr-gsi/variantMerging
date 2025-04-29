@@ -1,5 +1,11 @@
 version 1.0
 
+struct InputGroup {
+  File inputVcf
+  String workflowName
+  Int priority
+}
+
 struct GenomeResources {
     String refModule
     String refFasta
@@ -8,8 +14,7 @@ struct GenomeResources {
 workflow variantMerging {
 input {
   String reference
-  Array[Pair[File, String]] inputVcfs
-  Array[String] priorities
+  Array[InputGroup] inputVcfs
   String tumorName
   String? normalName
   String outputFileNamePrefix
@@ -17,8 +22,7 @@ input {
 
 parameter_meta {
   reference: "Reference assmbly id, passed by the respective olive"
-  inputVcfs: "Pairs of vcf files (SNV calls from different callers) and metadata string (producer of calls)."
-  priorities: "List of workflows which produced the calls, ordered by priority"
+  inputVcfs: "vcf files (SNV calls from different callers) and metadata strings (producer of calls and priority)."
   tumorName: "Tumor id to use in vcf headers"
   normalName: "Normal id to use in vcf headers, Optional"
   outputFileNamePrefix: "Output prefix to prefix output file names with."
@@ -43,8 +47,9 @@ Map[String,GenomeResources] resources = {
 scatter (v in inputVcfs) {
   call preprocessVcf {
     input: 
-       vcfFile = v.left, 
-       producerWorkflow = v.right, 
+       vcfFile = v.inputVcf, 
+       producerWorkflow = v.workflowName,
+       workflowPriority = v.priority,
        modules = resources[reference].refModule + " gatk/4.2.6.1 varmerge-scripts/2.2 tabix/0.2.6 bcftools/1.9",
        referenceId = reference,
        referenceFasta = resources[reference].refFasta
@@ -59,7 +64,7 @@ call resortList {
      unsortedVcfs = preprocessVcf.processedVcf,
      unsortedPassVcfs = preprocessVcf.processedPassVcf,
      unsortedWorkflows = preprocessVcf.prodWorkflow,
-     priorities = priorities
+     unsortedPriorities = preprocessVcf.priority
 }
 
 # Do merging (three ways)
@@ -272,6 +277,7 @@ task preprocessVcf {
 input {
  File vcfFile
  String producerWorkflow
+ Int workflowPriority
  String referenceId
  String referenceFasta
  String preprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
@@ -283,6 +289,7 @@ input {
 parameter_meta {
  vcfFile: "path to the input vcf file"
  producerWorkflow: "workflow name that produced the vcf"
+ workflowPriority: "Workflow priority, used when combining calls"
  referenceId: "String that shows the id of the reference assembly"
  referenceFasta: "path to the reference FASTA file"
  preprocessScript: "path to preprocessing script"
@@ -308,6 +315,7 @@ output {
   File processedVcf   = "~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz"
   File processedPassVcf = "~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz"
   String prodWorkflow = producerWorkflow
+  Int priority = "~{workflowPriority}"
 }
 }
 
@@ -320,7 +328,7 @@ task resortList {
  Array[File] unsortedVcfs
  Array[File] unsortedPassVcfs
  Array[String] unsortedWorkflows
- Array[String] priorities
+ Array[Int] unsortedPriorities
  Int timeout = 20
  Int jobMemory = 12
  }
@@ -329,7 +337,7 @@ task resortList {
   unsortedVcfs: "Array of vcf files"
   unsortedPassVcfs: "Array of vcf files with PASS calls"
   unsortedWorkflows: "Unsorted list of workflow names, the same order as for unsortedVcfs"
-  priorities: "Sorted list of workflows, defines priority"
+  unsortedPriorities: "Unsorted priorities, to be used for sorting vcf inputs accordingly"
   timeout: "timeout in hours"
   jobMemory: "Allocated memory, in GB"
  }
@@ -343,13 +351,14 @@ task resortList {
  import re
  sorted_indices = []
  unsortedNames = re.split(",",  "~{sep=',' unsortedWorkflows}")
- priorities = re.split(",", "~{sep=',' priorities}")
+ priorities = re.split(",", "~{sep=',' unsortedPriorities}")
  unsortedFiles = re.split(",", "~{sep=',' unsortedVcfs}")
  unsortedPassFiles = re.split(",", "~{sep=',' unsortedPassVcfs}")
  sorted_indices = []
- for p in  priorities:
-     if p in unsortedNames:
-         sorted_indices.append(unsortedNames.index(p))
+ for p in priorities:
+    idx = int(p)
+    if idx - 1 >= 0:
+        sorted_indices.append(idx -1)
 
  with open("~{sortedFiles}", mode='w') as out:
     out.writelines([unsortedFiles[i] + "\n" for i in sorted_indices])

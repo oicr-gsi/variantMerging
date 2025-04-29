@@ -3,9 +3,6 @@ This section lists command(s) run by variantMerging workflow
 
 * Running variantMerging
 
-### Preprocessing
-
-A vetting script makes sure we have matching formats used across vcf, in addition making separate vcf files with only PASS calls
 
 ```
  set -euxo pipefail
@@ -14,23 +11,19 @@ A vetting script makes sure we have matching formats used across vcf, in additio
  bcftools view -f "PASS" ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz | bgzip -c > ~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz
 ```
 
-### reorder inputs according to priority
-
 ```
  python3 <<CODE
  import re
  sorted_indices = []
  unsortedNames = re.split(",",  "~{sep=',' unsortedWorkflows}")
- priorities = re.split(",", "~{sep=',' priorities}")
+ priorities = re.split(",", "~{sep=',' unsortedPriorities}")
  unsortedFiles = re.split(",", "~{sep=',' unsortedVcfs}")
  unsortedPassFiles = re.split(",", "~{sep=',' unsortedPassVcfs}")
  sorted_indices = []
- for p in  priorities:
-     if p in unsortedNames:
-         print(p + "\n")
-         sorted_indices.append(unsortedNames.index(p))
+ for p in priorities:
+    if p - 1 >= 0:
+        sorted_indices.append(p -1)
 
- print(sorted_indices)
  with open("~{sortedFiles}", mode='w') as out:
     out.writelines([unsortedFiles[i] + "\n" for i in sorted_indices])
  with open("~{sortedPassFiles}", mode='w') as out2:
@@ -40,15 +33,9 @@ A vetting script makes sure we have matching formats used across vcf, in additio
  CODE
 ```
 
-### Merge variants with GATK (picard)
-
 ```
  gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
 ```
-
-### Customized combining of the variants
-
-This step is custom-scripted and the produced vcf has variants annotated in a very detailed way
 
 ```
   set -euxo pipefail 
@@ -65,13 +52,9 @@ This step is custom-scripted and the produced vcf has variants annotated in a ve
   gatk SortVcf -I ~{outputPrefix}_tmp.vcf -R ~{referenceFasta} -O ~{outputPrefix}_combined.vcf.gz
 ```
 
-### Ensemble variants with bcbio tools
-
 ```
   ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} --names ~{sep=',' inputNames} --numpass ~{minCallers} ~{additionalParameters} ~{sep=' ' inputVcfs}
 ```
-
-### Post-processing
 
 ```
  set -euxo pipefail

@@ -4,7 +4,6 @@
             "variantMerging.reference": "hg19",
             "variantMerging.tumorName": "M2S_FAKE_P",
             "variantMerging.normalName": "M2S_FAKE_R",
-            "variantMerging.priorities": ["strelka", "mutect2"],
             "variantMerging.combineVariantsAll.jobMemory": null,
             "variantMerging.combineVariantsAll.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariantsAll.timeout": null,
@@ -23,7 +22,7 @@
             "variantMerging.ensembleVariantsPass.timeout": null,
             "variantMerging.inputVcfs": [
                 {
-                    "left": {
+                    "inputVcf": {
                         "contents": {
                             "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
                             "externalIds": [
@@ -35,10 +34,11 @@
                         },
                         "type": "EXTERNAL"
                     },
-                    "right": "strelka"
+                    "workflowName": "strelka",
+                    "priority": 1
                 },
                 {
-                    "left": {
+                    "inputVcf": {
                         "contents": {
                             "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
                             "externalIds": [
@@ -50,7 +50,8 @@
                         },
                         "type": "EXTERNAL"
                     },
-                    "right": "mutect2"
+                    "workflowName": "mutect2",
+                    "priority": 2
                 }
             ],
             "variantMerging.mergeVcfsAll.jobMemory": null,
@@ -204,7 +205,6 @@
             "variantMerging.reference": "hg19",
             "variantMerging.tumorName": "MS_FAKE_P",
             "variantMerging.normalName": "MS_FAKE_R",
-            "variantMerging.priorities": ["strelka", "mutect"],
             "variantMerging.combineVariantsAll.jobMemory": null,
             "variantMerging.combineVariantsAll.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariantsAll.timeout": null,
@@ -223,7 +223,7 @@
             "variantMerging.ensembleVariantsPass.timeout": null,
             "variantMerging.inputVcfs": [
                 {
-                    "left": {
+                    "inputVcf": {
                         "contents": {
                             "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
                             "externalIds": [
@@ -235,10 +235,11 @@
                         },
                         "type": "EXTERNAL"
                     },
-                    "right": "strelka"
+                    "workflowName": "strelka",
+                    "priority": 1
                 },
                 {
-                    "left": {
+                    "inputVcf": {
                         "contents": {
                             "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
                             "externalIds": [
@@ -250,7 +251,8 @@
                         },
                         "type": "EXTERNAL"
                     },
-                    "right": "mutect"
+                    "workflowName": "mutect",
+                    "priority": 2
                 }
             ],
             "variantMerging.mergeVcfsAll.jobMemory": null,
@@ -420,7 +422,7 @@
             "variantMerging.ensembleVariantsPass.timeout": null,
             "variantMerging.inputVcfs": [
                 {
-                    "left": {
+                    "inputVcf": {
                         "contents": {
                             "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
                             "externalIds": [
@@ -432,10 +434,11 @@
                         },
                         "type": "EXTERNAL"
                     },
-                    "right": "strelka"
+                    "workflowName": "strelka",
+                    "priority": 1
                 },
                 {
-                    "left": {
+                    "inputVcf": {
                         "contents": {
                             "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
                             "externalIds": [
@@ -447,10 +450,11 @@
                         },
                         "type": "EXTERNAL"
                     },
-                    "right": "mutect2"
+                    "workflowName": "mutect2",
+                    "priority": 2
                 },
                 {
-                    "left": {
+                    "inputVcf": {
                         "contents": {
                             "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
                             "externalIds": [
@@ -462,7 +466,8 @@
                         },
                         "type": "EXTERNAL"
                     },
-                    "right": "mutect"
+                    "workflowName": "mutect",
+                    "priority": 3
                 }
             ],
             "variantMerging.mergeVcfsAll.jobMemory": null,
