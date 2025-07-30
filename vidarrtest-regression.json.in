@@ -24,7 +24,7 @@
                 {
                     "inputVcf": {
                         "contents": {
-                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/test_inputs/DYS_Test.sorted.filter.P.final.strelka.snvs.vcf.gz",
                             "externalIds": [
                                 {
                                     "id": "TEST",
@@ -40,7 +40,7 @@
                 {
                     "inputVcf": {
                         "contents": {
-                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/test_inputs/DYS_Test_1-2.mutect2.vcf.gz",
                             "externalIds": [
                                 {
                                     "id": "TEST",
@@ -195,7 +195,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.0/output_metrics/TEST_M2S.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/output_metrics/workflow_test_01.metrics",
                 "type": "script"
             }
         ]
@@ -225,7 +225,7 @@
                 {
                     "inputVcf": {
                         "contents": {
-                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/test_inputs/DYS_Test.sorted.filter.P.final.strelka.snvs.vcf.gz",
                             "externalIds": [
                                 {
                                     "id": "TEST",
@@ -241,7 +241,7 @@
                 {
                     "inputVcf": {
                         "contents": {
-                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/test_inputs/DYS_Test.final.muTect.snvs.sorted.vcf.gz",
                             "externalIds": [
                                 {
                                     "id": "TEST",
@@ -393,7 +393,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.0/output_metrics/TEST_MS.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/output_metrics/workflow_test_02.metrics",
                 "type": "script"
             }
         ]
@@ -424,7 +424,7 @@
                 {
                     "inputVcf": {
                         "contents": {
-                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/strelka/DYS_1194_Es_P_TS.sorted.filter.P.final.strelka.snvs.vcf.gz",
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/test_inputs/DYS_Test.sorted.filter.P.final.strelka.snvs.vcf.gz",
                             "externalIds": [
                                 {
                                     "id": "TEST",
@@ -440,7 +440,7 @@
                 {
                     "inputVcf": {
                         "contents": {
-                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect2/DYS_1194_Es_P_TS_1-2.mutect2.vcf.gz",
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/test_inputs/DYS_Test_1-2.mutect2.vcf.gz",
                             "externalIds": [
                                 {
                                     "id": "TEST",
@@ -456,7 +456,7 @@
                 {
                     "inputVcf": {
                         "contents": {
-                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/input_data/mutect/DYS_1194_Es_P_TS.final.muTect.snvs.sorted.vcf.gz",
+                            "configuration": "/.mounts/labs/gsi/testdata/variantMerging/test_inputs/DYS_Test.final.muTect.snvs.sorted.vcf.gz",
                             "externalIds": [
                                 {
                                     "id": "TEST",
@@ -609,7 +609,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.0/output_metrics/TEST_MULTI.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/output_metrics/workflow_test_03.metrics",
                 "type": "script"
             }
         ]
