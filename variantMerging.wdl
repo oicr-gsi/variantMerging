@@ -52,7 +52,9 @@ scatter (v in inputVcfs) {
        workflowPriority = v.priority,
        modules = resources[reference].refModule + " gatk/4.2.6.1 varmerge-scripts/2.2 tabix/0.2.6 bcftools/1.9",
        referenceId = reference,
-       referenceFasta = resources[reference].refFasta
+       referenceFasta = resources[reference].refFasta,
+       tumorName = tumorName,
+       normalName = normalName
   }
 }
 
@@ -280,7 +282,9 @@ input {
  Int workflowPriority
  String referenceId
  String referenceFasta
- String preprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
+ String tumorName
+ String? normalName
+ String preprocessScript = "/.mounts/labs/gsiprojects/gsi/gsiusers/mrojaspena/repositories/github_repos/variantMerging/scripts/vcfVetting.py"
  String modules
  Int jobMemory = 12
  Int timeout = 10
@@ -291,6 +295,8 @@ parameter_meta {
  producerWorkflow: "workflow name that produced the vcf"
  workflowPriority: "Workflow priority, used when combining calls"
  referenceId: "String that shows the id of the reference assembly"
+ tumorName: "Tumor id to use in vcf headers"
+ normalName: "Normal id to use in vcf headers, Optional"
  referenceFasta: "path to the reference FASTA file"
  preprocessScript: "path to preprocessing script"
  modules: "modules for running preprocessing"
@@ -300,7 +306,7 @@ parameter_meta {
 
 command <<<
  set -euxo pipefail
- python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} 
+ python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} -t ~{tumorName} ~{"-n " + normalName}
  bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
  bcftools view -f "PASS" ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz | bgzip -c > ~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz
 >>>
@@ -526,7 +532,7 @@ task postprocessVcf {
 input {
  File vcfFile
  String referenceId
- String postprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
+ String postprocessScript = "/.mounts/labs/gsiprojects/gsi/gsiusers/mrojaspena/repositories/github_repos/variantMerging/scripts/vcfVetting.py"
  String modules
  String tumorName
  String? normalName
@@ -547,7 +553,7 @@ parameter_meta {
 
 command <<<
  set -euxo pipefail
- python3 ~{postprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} -t ~{tumorName} ~{"-n " + normalName}
+ python3 ~{postprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} -t ~{tumorName} ~{"-n " + normalName} -f
  bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}.vcf.gz
  tabix -p vcf ~{basename(vcfFile, '.vcf.gz')}.vcf.gz
 >>>
