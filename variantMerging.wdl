@@ -284,7 +284,7 @@ input {
  String referenceFasta
  String tumorName
  String? normalName
- String preprocessScript = "/.mounts/labs/gsiprojects/gsi/gsiusers/mrojaspena/repositories/github_repos/variantMerging/scripts/vcfVetting.py"
+ String preprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
  String modules
  Int jobMemory = 12
  Int timeout = 10
@@ -532,7 +532,7 @@ task postprocessVcf {
 input {
  File vcfFile
  String referenceId
- String postprocessScript = "/.mounts/labs/gsiprojects/gsi/gsiusers/mrojaspena/repositories/github_repos/variantMerging/scripts/vcfVetting.py"
+ String postprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
  String modules
  String tumorName
  String? normalName
