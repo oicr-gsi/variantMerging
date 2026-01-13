@@ -43,11 +43,12 @@ inputHash = {}
 
 """ mutect2 - specific normal swap fix: """
 if len(vcf_reader.samples) == 2:
-    
+
     # Mutect2 metadata-based detection
-    if vcf_reader.samples[1] == 'NORMAL' and len(inputHash) == 0:
-        swap_nt = True
-    if 'normal_sample' in vcf_reader.metadata and vcf_reader.samples[1] in vcf_reader.metadata['normal_sample']:
+    if (
+        'normal_sample' in vcf_reader.metadata and
+        vcf_reader.samples[1] in vcf_reader.metadata['normal_sample']
+    ):
         swap_nt = True
 
     # VarDict (or others): name-based detection
