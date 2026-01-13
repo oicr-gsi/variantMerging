@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.3] - 2026-01-09
+### Changed
+- Updated `vcfVetting.py` to allow `--tumor` and `--normal` arguments for correct column swapping in VCFs.
+- Updated WDL workflow to support the changes made to the `vcfVetting.py` script
+
+### Added
+- `--renaming` argument in `vcfVetting.py` script for header-only sample name updates, which updates sample names in the header without parsing all records.
+
 ## [2.5.2] - 2025-04-15
 ### Changed
 - converted inputs into Input groups, moved priority inside, as an element of input groups

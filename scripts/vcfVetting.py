@@ -9,6 +9,7 @@ parser.add_argument('-o', '--output', help='output vcf file path', required=True
 parser.add_argument('-r', '--reference', help='reference id, i.e. hg19', required=True)
 parser.add_argument('-t', '--tumor', help='tumor id, available for matched calls', required=False)
 parser.add_argument('-n', '--normal', help='normal id, available for matched calls', required=False)
+parser.add_argument('-f', '--renaming', action='store_true', help='Fast mode - Only update sample names in header(no parsing of records)')
 
 args = parser.parse_args()
 
@@ -41,10 +42,25 @@ swap_nt = False  # Swap sample data if we have TUMOR preceding NORMAL (mutect2-s
 inputHash = {}
 
 """ mutect2 - specific normal swap fix: """
-if len(vcf_reader.samples) == 2 and vcf_reader.samples[1] == 'NORMAL' and len(inputHash) == 0:
-    swap_nt = True
-if 'normal_sample' in vcf_reader.metadata.keys() and vcf_reader.samples[1] in vcf_reader.metadata['normal_sample']:
-    swap_nt = True
+if len(vcf_reader.samples) == 2:
+
+    # Mutect2 metadata-based detection
+    if (
+        (vcf_reader.samples[1] == 'NORMAL' and len(inputHash) == 0 ) or
+        (
+            'normal_sample' in vcf_reader.metadata and
+            vcf_reader.samples[1] in vcf_reader.metadata['normal_sample']
+        )
+    ):
+        swap_nt = True
+
+    # VarDict (or others): name-based detection
+    elif args.tumor and args.normal:
+        if (
+            vcf_reader.samples[0] == args.tumor and
+            vcf_reader.samples[1] == args.normal
+        ):
+            swap_nt = True
 
 '''
   Definitions for helper subroutines which 
@@ -146,7 +162,7 @@ record_lines = []
 '''
   If we have names for tumor or normal passed, just read the lines from vcf into record_lines array 
 '''
-if args.tumor:
+if args.renaming:
     print("We have sample names, will not parse record - only updating the header")
     try:
         vcf = args.path
@@ -223,7 +239,7 @@ else:
    Adjust header lines if we have names for tumor/normal
    PRINTING OUTPUT: the output file name is passed via -o option
 '''
-vetted_headers = inject_names(header_lines, args.tumor, args.normal) if args.tumor else header_lines
+vetted_headers = inject_names(header_lines, args.tumor, args.normal) if args.renaming else header_lines
 
 with open(args.output, mode='+w') as out:
     out.writelines(vetted_headers)
