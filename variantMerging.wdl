@@ -37,6 +37,10 @@ Map[String,GenomeResources] resources = {
     "refModule": "hg38/p12",
     "refFasta": "$HG38_ROOT/hg38_random.fa"
   },
+  "hg38_noAlt": {
+    "refModule": "hg38_noalt/p12",
+    "refFasta": "$HG38_NOALT_ROOT/hg38_noAlt.fa"
+  },
   "mm10": {
     "refModule": "mm10/p6",
     "refFasta": "$MM10_ROOT/mm10.fa"
