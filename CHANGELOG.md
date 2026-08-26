@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.5] = 2026-08-26
+### Added
+- [GRD-1178](https://jira.oicr.on.ca/browse/GRD-1178) Added reference dictionary option for mergeVcfs task
+
 ## [2.5.4] = 2026-06-01
 ### Added
 - [GRD-1175](https://jira.oicr.on.ca/browse/GRD-1175) Added hg38_noAlt support
