@@ -57,6 +57,7 @@ Parameter|Value|Default|Description
 `resortList.jobMemory`|Int|12|Allocated memory, in GB
 `mergeVcfsAll.timeout`|Int|20|timeout in hours
 `mergeVcfsAll.jobMemory`|Int|12|Allocated memory, in GB
+`mergeVcfsAll.refDict`|String|None|Path to reference dictionary file
 `combineVariantsAll.combiningScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"|Path to combining script
 `combineVariantsAll.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `combineVariantsAll.timeout`|Int|20|timeout in hours
@@ -67,6 +68,7 @@ Parameter|Value|Default|Description
 `ensembleVariantsAll.timeout`|Int|20|timeout in hours
 `mergeVcfsPass.timeout`|Int|20|timeout in hours
 `mergeVcfsPass.jobMemory`|Int|12|Allocated memory, in GB
+`mergeVcfsPass.refDict`|String|None|Path to reference dictionary file
 `combineVariantsPass.combiningScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"|Path to combining script
 `combineVariantsPass.jobMemory`|Int|12|memory allocated to preprocessing, in GB
 `combineVariantsPass.timeout`|Int|20|timeout in hours
@@ -127,8 +129,8 @@ This section lists command(s) run by variantMerging workflow
 ```
   set -euxo pipefail
   python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} -t ~{tumorName} ~{"-n " + normalName}
- bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
- bcftools view -f "PASS" ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz | bgzip -c > ~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz
+  bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+  bcftools view -f "PASS" ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz | bgzip -c > ~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz
 ```
  
 ### reorder inputs according to priority
@@ -158,7 +160,7 @@ This section lists command(s) run by variantMerging workflow
 ### Merge variants with GATK (picard)
  
 ```
-  gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
+  gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -D ~{refDict} -O ~{outputPrefix}_mergedVcfs.vcf.gz
 ```
  
 ### Customized combining of the variants

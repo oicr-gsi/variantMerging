@@ -9,6 +9,7 @@ struct InputGroup {
 struct GenomeResources {
     String refModule
     String refFasta
+    String refDict
 }
 
 workflow variantMerging {
@@ -31,19 +32,23 @@ parameter_meta {
 Map[String,GenomeResources] resources = {
   "hg19": {
     "refModule": "hg19/p13", 
-    "refFasta": "$HG19_ROOT/hg19_random.fa"
+    "refFasta": "$HG19_ROOT/hg19_random.fa",
+    "refDict": "$HG19_ROOT/hg19_random.dict"
   },
   "hg38": {
     "refModule": "hg38/p12",
-    "refFasta": "$HG38_ROOT/hg38_random.fa"
+    "refFasta": "$HG38_ROOT/hg38_random.fa",
+    "refDict": "$HG38_ROOT/hg38_random.dict"
   },
   "hg38_noAlt": {
     "refModule": "hg38_noalt/p12",
-    "refFasta": "$HG38_NOALT_ROOT/hg38_noAlt.fa"
+    "refFasta": "$HG38_NOALT_ROOT/hg38_noAlt.fa",
+    "refDict": "$HG38_NOALT_ROOT/hg38_noAlt.dict"
   },
   "mm10": {
     "refModule": "mm10/p6",
-    "refFasta": "$MM10_ROOT/mm10.fa"
+    "refFasta": "$MM10_ROOT/mm10.fa",
+    "refDict": "$MM10_ROOT/mm10.dict"
   }
 }
 
@@ -79,7 +84,8 @@ call mergeVcfs as mergeVcfsAll {
   input:
      inputVcfs = preprocessVcf.processedVcf,
      outputPrefix = outputFileNamePrefix,
-     modules = "gatk/4.2.6.1 tabix/0.2.6"
+     modules = resources[reference].refModule + " gatk/4.2.6.1 tabix/0.2.6",
+     refDict = resources[reference].refDict
 }
 
 # Combine using Custom script
@@ -106,7 +112,8 @@ call mergeVcfs as mergeVcfsPass {
   input:
      inputVcfs = preprocessVcf.processedPassVcf,
      outputPrefix = outputFileNamePrefix + ".pass",
-     modules = "gatk/4.2.6.1 tabix/0.2.6"
+     modules = resources[reference].refModule + " gatk/4.2.6.1 tabix/0.2.6",
+     refDict = resources[reference].refDict
 }
 
 # Combine PASS calls using Custom script
@@ -399,6 +406,7 @@ task mergeVcfs {
 input {
  Array[File] inputVcfs
  String outputPrefix
+ String refDict
  Int timeout = 20
  Int jobMemory = 12
  String modules
@@ -407,13 +415,14 @@ input {
 parameter_meta {
  inputVcfs: "Array of vcf files to merge"
  outputPrefix: "prefix for output file"
+ refDict: "Path to reference dictionary file"
  timeout: "timeout in hours" 
  jobMemory: "Allocated memory, in GB"
  modules: "modules for this task"
 }
 
 command <<<
- gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
+ gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -D ~{refDict} -O ~{outputPrefix}_mergedVcfs.vcf.gz
 >>>
 
 runtime {
