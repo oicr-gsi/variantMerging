@@ -59,9 +59,10 @@ scatter (v in inputVcfs) {
        vcfFile = v.inputVcf, 
        producerWorkflow = v.workflowName,
        workflowPriority = v.priority,
-       modules = resources[reference].refModule + " gatk/4.2.6.1 varmerge-scripts/2.3 tabix/0.2.6 bcftools/1.9",
+       modules = resources[reference].refModule + " gatk/4.2.6.1 varmerge-scripts/2.3 picard/2.21.2 bcftools/1.9",
        referenceId = reference,
        referenceFasta = resources[reference].refFasta,
+       referenceDict = resources[reference].refDict,
        tumorName = tumorName,
        normalName = normalName
   }
@@ -84,8 +85,7 @@ call mergeVcfs as mergeVcfsAll {
   input:
      inputVcfs = preprocessVcf.processedVcf,
      outputPrefix = outputFileNamePrefix,
-     modules = resources[reference].refModule + " gatk/4.2.6.1 tabix/0.2.6",
-     refDict = resources[reference].refDict
+     modules = resources[reference].refModule + " gatk/4.2.6.1 tabix/0.2.6"
 }
 
 # Combine using Custom script
@@ -112,8 +112,7 @@ call mergeVcfs as mergeVcfsPass {
   input:
      inputVcfs = preprocessVcf.processedPassVcf,
      outputPrefix = outputFileNamePrefix + ".pass",
-     modules = resources[reference].refModule + " gatk/4.2.6.1 tabix/0.2.6",
-     refDict = resources[reference].refDict
+     modules = resources[reference].refModule + " gatk/4.2.6.1 tabix/0.2.6"
 }
 
 # Combine PASS calls using Custom script
@@ -293,11 +292,13 @@ input {
  Int workflowPriority
  String referenceId
  String referenceFasta
+ String referenceDict
  String tumorName
  String? normalName
  String preprocessScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"
  String modules
  Int jobMemory = 12
+ Int overhead = 4
  Int timeout = 10
 }
 
@@ -306,19 +307,24 @@ parameter_meta {
  producerWorkflow: "workflow name that produced the vcf"
  workflowPriority: "Workflow priority, used when combining calls"
  referenceId: "String that shows the id of the reference assembly"
+ referenceDict: "Reference dict file"
  tumorName: "Tumor id to use in vcf headers"
  normalName: "Normal id to use in vcf headers, Optional"
  referenceFasta: "path to the reference FASTA file"
  preprocessScript: "path to preprocessing script"
  modules: "modules for running preprocessing"
  jobMemory: "memory allocated to preprocessing, in gigabytes"
+ overhead: "Memory overhead used for calculating java heap RAM allocation"
  timeout: "timeout in hours"
 }
 
 command <<<
  set -euxo pipefail
  python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} -t ~{tumorName} ~{"-n " + normalName}
- bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+ java -Xmx~{jobMemory-overhead}G -jar $PICARD_ROOT/picard.jar UpdateVcfSequenceDictionary \
+          I=~{basename(vcfFile, '.vcf.gz')}_tmp.vcf \
+          O=~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz \
+          SD=~{referenceDict} 
  bcftools view -f "PASS" ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz | bgzip -c > ~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz
 >>>
 
@@ -406,23 +412,23 @@ task mergeVcfs {
 input {
  Array[File] inputVcfs
  String outputPrefix
- String refDict
  Int timeout = 20
  Int jobMemory = 12
+ Int overhead = 4
  String modules
 }
 
 parameter_meta {
  inputVcfs: "Array of vcf files to merge"
  outputPrefix: "prefix for output file"
- refDict: "Path to reference dictionary file"
  timeout: "timeout in hours" 
  jobMemory: "Allocated memory, in GB"
+ overhead: "Memory overhead used for calculating java heap RAM allocation"
  modules: "modules for this task"
 }
 
 command <<<
- gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -D ~{refDict} -O ~{outputPrefix}_mergedVcfs.vcf.gz
+ gatk --java-options ~{"-Xmx" + (jobMemory-overhead) + "G"} MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
 >>>
 
 runtime {
@@ -450,6 +456,7 @@ input {
  String combiningScript = "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"
  String referenceFasta
  Int jobMemory = 12
+ Int overhead = 4
  Int timeout = 20
 }
 
@@ -461,6 +468,7 @@ parameter_meta {
  combiningScript: "Path to combining script"
  referenceFasta: "path to the reference FASTA file"
  jobMemory: "memory allocated to preprocessing, in GB"
+ overhead: "Memory overhead used for calculating java heap RAM allocation"
  timeout: "timeout in hours"
 }
 
@@ -476,7 +484,7 @@ command <<<
   CODE
 
   python3 ~{combiningScript} vcf_list -c ~{outputPrefix}_tmp.vcf -n ~{sep=',' inputNames} 
-  gatk SortVcf -I ~{outputPrefix}_tmp.vcf -R ~{referenceFasta} -O ~{outputPrefix}_combined.vcf.gz
+  gatk --java-options ~{"-Xmx" + (jobMemory-overhead) + "G"} SortVcf -I ~{outputPrefix}_tmp.vcf -R ~{referenceFasta} -O ~{outputPrefix}_combined.vcf.gz
 >>>
 
 runtime {
