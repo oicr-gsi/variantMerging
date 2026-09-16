@@ -52,14 +52,16 @@ Parameter|Value|Default|Description
 ---|---|---|---
 `preprocessVcf.preprocessScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfVetting.py"|path to preprocessing script
 `preprocessVcf.jobMemory`|Int|12|memory allocated to preprocessing, in gigabytes
+`preprocessVcf.overhead`|Int|4|Memory overhead used for calculating java heap RAM allocation
 `preprocessVcf.timeout`|Int|10|timeout in hours
 `resortList.timeout`|Int|20|timeout in hours
 `resortList.jobMemory`|Int|12|Allocated memory, in GB
 `mergeVcfsAll.timeout`|Int|20|timeout in hours
 `mergeVcfsAll.jobMemory`|Int|12|Allocated memory, in GB
-`mergeVcfsAll.refDict`|String|None|Path to reference dictionary file
+`mergeVcfsAll.overhead`|Int|4|Memory overhead used for calculating java heap RAM allocation
 `combineVariantsAll.combiningScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"|Path to combining script
 `combineVariantsAll.jobMemory`|Int|12|memory allocated to preprocessing, in GB
+`combineVariantsAll.overhead`|Int|4|Memory overhead used for calculating java heap RAM allocation
 `combineVariantsAll.timeout`|Int|20|timeout in hours
 `ensembleVariantsAll.ensembleProgram`|String|"$BCBIO_VARIATION_RECALL_ROOT/bin/bcbio-variation-recall"|Path to ensemble program
 `ensembleVariantsAll.additionalParameters`|String?|None|Optional additional parameters for ensemble program
@@ -68,9 +70,10 @@ Parameter|Value|Default|Description
 `ensembleVariantsAll.timeout`|Int|20|timeout in hours
 `mergeVcfsPass.timeout`|Int|20|timeout in hours
 `mergeVcfsPass.jobMemory`|Int|12|Allocated memory, in GB
-`mergeVcfsPass.refDict`|String|None|Path to reference dictionary file
+`mergeVcfsPass.overhead`|Int|4|Memory overhead used for calculating java heap RAM allocation
 `combineVariantsPass.combiningScript`|String|"$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py"|Path to combining script
 `combineVariantsPass.jobMemory`|Int|12|memory allocated to preprocessing, in GB
+`combineVariantsPass.overhead`|Int|4|Memory overhead used for calculating java heap RAM allocation
 `combineVariantsPass.timeout`|Int|20|timeout in hours
 `ensembleVariantsPass.ensembleProgram`|String|"$BCBIO_VARIATION_RECALL_ROOT/bin/bcbio-variation-recall"|Path to ensemble program
 `ensembleVariantsPass.additionalParameters`|String?|None|Optional additional parameters for ensemble program
@@ -116,20 +119,24 @@ Output | Type | Description | Labels
 
 
 ## Commands
+ This section lists command(s) run by variantMerging workflow
  
-This section lists command(s) run by variantMerging workflow
+ * Running variantMerging
  
-* Running variantMerging
  
 ### Preprocessing
  
  Detect NORMAL/TUMOR swap, impute missing fields (i.e. in case of such callers as strelka) 
  A vetting script makes sure we have matching formats used across vcf, in addition making separate vcf files with only PASS calls
  
+
 ```
   set -euxo pipefail
   python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} -t ~{tumorName} ~{"-n " + normalName}
-  bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+  java -Xmx~{jobMemory-overhead}G -jar $PICARD_ROOT/picard.jar UpdateVcfSequenceDictionary \
+           I=~{basename(vcfFile, '.vcf.gz')}_tmp.vcf \
+           O=~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz \
+           SD=~{referenceDict} 
   bcftools view -f "PASS" ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz | bgzip -c > ~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz
 ```
  
@@ -145,8 +152,9 @@ This section lists command(s) run by variantMerging workflow
   unsortedPassFiles = re.split(",", "~{sep=',' unsortedPassVcfs}")
   sorted_indices = []
   for p in priorities:
-     if p - 1 >= 0:
-         sorted_indices.append(p -1)
+     idx = int(p)
+     if idx - 1 >= 0:
+         sorted_indices.append(idx -1)
  
   with open("~{sortedFiles}", mode='w') as out:
      out.writelines([unsortedFiles[i] + "\n" for i in sorted_indices])
@@ -160,7 +168,7 @@ This section lists command(s) run by variantMerging workflow
 ### Merge variants with GATK (picard)
  
 ```
-  gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -D ~{refDict} -O ~{outputPrefix}_mergedVcfs.vcf.gz
+  gatk --java-options ~{"-Xmx" + (jobMemory-overhead) + "G"} MergeVcfs -I ~{sep=" -I " inputVcfs} -D ~{refDict} -O ~{outputPrefix}_mergedVcfs.vcf.gz
 ```
  
 ### Customized combining of the variants
@@ -178,12 +186,9 @@ This section lists command(s) run by variantMerging workflow
            l.write(v + "\n")
    CODE
  
-   python3 COMBINING_SCRIPT vcf_list -c OUTPUT_PREFIX_tmp.vcf -n ~{sep=',' inputNames}
-   gatk SortVcf -I OUTPUT_PREFIX_tmp.vcf -R REFERENCE_FASTA -O OUTPUT_PREFIX_combined.vcf.gz
- 
-```
-
-### Ensemble vcfs (combine calls using bcbio approach)
+   python3 ~{combiningScript} vcf_list -c ~{outputPrefix}_tmp.vcf -n ~{sep=',' inputNames} 
+   gatk --java-options ~{"-Xmx" + (jobMemory-overhead) + "G"} SortVcf -I ~{outputPrefix}_tmp.vcf -R ~{referenceFasta} -O ~{outputPrefix}_combined.vcf.gz
+ ```
  
 ```
    ~{ensembleProgram} ensemble ~{outputPrefix}_ensembled.vcf.gz ~{referenceFasta} --names ~{sep=',' inputNames} --numpass ~{minCallers} ~{additionalParameters} ~{sep=' ' inputVcfs}

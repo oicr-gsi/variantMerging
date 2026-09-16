@@ -7,7 +7,10 @@ This section lists command(s) run by variantMerging workflow
 ```
  set -euxo pipefail
  python3 ~{preprocessScript} ~{vcfFile} -o ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf -r ~{referenceId} -t ~{tumorName} ~{"-n " + normalName}
- bgzip -c ~{basename(vcfFile, '.vcf.gz')}_tmp.vcf > ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz
+ java -Xmx~{jobMemory-overhead}G -jar $PICARD_ROOT/picard.jar UpdateVcfSequenceDictionary \
+          I=~{basename(vcfFile, '.vcf.gz')}_tmp.vcf \
+          O=~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz \
+          SD=~{referenceDict} 
  bcftools view -f "PASS" ~{basename(vcfFile, '.vcf.gz')}_processed.vcf.gz | bgzip -c > ~{basename(vcfFile, '.vcf.gz')}_processed_pass.vcf.gz
 ```
 
@@ -21,8 +24,9 @@ This section lists command(s) run by variantMerging workflow
  unsortedPassFiles = re.split(",", "~{sep=',' unsortedPassVcfs}")
  sorted_indices = []
  for p in priorities:
-    if p - 1 >= 0:
-        sorted_indices.append(p -1)
+    idx = int(p)
+    if idx - 1 >= 0:
+        sorted_indices.append(idx -1)
 
  with open("~{sortedFiles}", mode='w') as out:
     out.writelines([unsortedFiles[i] + "\n" for i in sorted_indices])
@@ -32,9 +36,8 @@ This section lists command(s) run by variantMerging workflow
     out3.writelines([unsortedNames[k] + "\n" for k in sorted_indices])
  CODE
 ```
-
 ```
- gatk MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
+ gatk --java-options ~{"-Xmx" + (jobMemory-overhead) + "G"} MergeVcfs -I ~{sep=" -I " inputVcfs} -O ~{outputPrefix}_mergedVcfs.vcf.gz
 ```
 
 ```
@@ -49,7 +52,7 @@ This section lists command(s) run by variantMerging workflow
   CODE
 
   python3 ~{combiningScript} vcf_list -c ~{outputPrefix}_tmp.vcf -n ~{sep=',' inputNames} 
-  gatk SortVcf -I ~{outputPrefix}_tmp.vcf -R ~{referenceFasta} -O ~{outputPrefix}_combined.vcf.gz
+  gatk --java-options ~{"-Xmx" + (jobMemory-overhead) + "G"} SortVcf -I ~{outputPrefix}_tmp.vcf -R ~{referenceFasta} -O ~{outputPrefix}_combined.vcf.gz
 ```
 
 ```
