@@ -144,9 +144,9 @@ def _generate_ad(my_record: cyvcf2.Variant, samples: list):
     except Exception:
         traceback.print_exc()
         print("Failed to extract AD value")
-    ref_values = np.array([ref_count_ref, ref_count_alt], dtype=np.int32)
+    ref_values = np.array([ref_count_ref, ref_count_alt], dtype=object)
     ref_values = list(chain.from_iterable(ref_values))
-    alt_values = np.array([alt_count_ref, alt_count_alt], dtype=np.int32)
+    alt_values = np.array([alt_count_ref, alt_count_alt], dtype=object)
     alt_values = list(chain.from_iterable(alt_values))
     return [ref_values, alt_values]
 
@@ -255,7 +255,7 @@ def main():
         '''Impute GT from available data (SGT)'''
         if add_gt and vcf_reader.contains('SGT'):
             gtStrings = _tumor_normal_genotypes(record.REF, '.' if record.ALT is None else record.ALT, record.INFO)
-        if record.ALT[0] is None:
+        if len(record.ALT) == 0 or record.ALT[0] is None:
             continue
 
         ''' ID, FILTER '''
@@ -272,7 +272,11 @@ def main():
             ]
             ad_values = _generate_ad(record, vcf_reader.samples)
             record.genotypes = gt_values
-            record.set_format('AD', np.array(ad_values))
+            """ Ensure we have integer values for AD """
+            ad_array = np.asarray(ad_values, dtype=np.int32)
+            n_alleles = len(record.ALT) + 1
+            assert ad_array.shape == (len(record.genotypes), n_alleles)
+            record.set_format('AD', np.array(ad_array))
         vcf_writer.write_record(record)
 
     vcf_reader.close()
