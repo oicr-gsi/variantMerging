@@ -22,7 +22,5 @@ if __name__ == '__main__':
             vetted_line = line.strip()
             vcf_list[wf_names[names_index]] = vetted_line
             names_index += 1
-        variant_lines = VariantConsensus.combine_caller_vcfs(vcf_list)
-        print("Writing into a file")
-        with open(args.combined, 'w') as c:
-            c.writelines(variant_lines)
+        """This call combines vcf files and writes the output to the specified combined vcf"""
+        VariantConsensus.combine_caller_vcfs(vcf_list, args.combined)
