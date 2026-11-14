@@ -1,9 +1,11 @@
 import argparse
+import os
 import re
+import tempfile
 import traceback
 import numpy as np
-
 from pysam import bcftools as bt
+import pysam
 from itertools import chain
 from vcfParsing import *
 from cyvcf2 import VCF, Writer
@@ -28,18 +30,50 @@ def _samples_swapped(reader: cyvcf2.VCFReader, normalName: str, tumorName: str) 
     return False
 
 ''' bcftools function for renaming only, re-header vcf and write into output file '''
-def _rename_samples(input_path: str, output_path: str, normalName: str, tumorName: str):
-    vcf_namefile = "sampleNames_fix.txt"
-    with open(vcf_namefile, 'w') as f:
-        f.write(f"NORMAL\t{normalName or 'NORMAL'}\n")
-        f.write(f"TUMOR\t{tumorName or 'TUMOR'}\n")
+def _rename_samples(input_path: str,
+                    output_path: str,
+                    new_normal: str,
+                    new_tumor: str,
+                    old_normal='NORMAL',
+                    old_tumor='TUMOR'):
+    """
 
-    bt.reheader(
-        '-s', vcf_namefile,
-        '-o', output_path,
-        input_path,
-        catch_stdout=False
-    )
+    :param input_path: Path for the input vcf (can be vcf or vcf.gz)
+    :param output_path: Path to write our output, re-headered vcf
+    :param new_normal: This is what we want for normal sample
+    :param new_tumor: This is what we want for tumor sample
+    :param old_normal: existing normal sample name, to be replaced by new_normal (usually NORMAL)
+    :param old_tumor: existing tumor sample name, to be replaced by new_tumor (usually TUMOR)
+
+    This function will create a vcf which is essentially a copy of the input, with sample ids
+    replaced by what we pass to it.
+    """
+
+    ''' Check that the input contains the expected samples in the expected order '''
+    with pysam.VariantFile(input_path) as vcf:
+        samples = list(vcf.header.samples)
+
+    if samples != [old_normal, old_tumor]:
+        raise ValueError(
+            f"Unexpected sample names/order in {input_path}: {samples}. "
+            f"Expected {[old_normal, old_tumor]}"
+        )
+
+    ''' Re-header using pysam bcftools, replacing old sample ids with new ones: '''
+    with tempfile.TemporaryDirectory() as tmpdir:
+        vcf_namefile = f"{tmpdir}/sample_names.txt"
+        with open(vcf_namefile, 'w') as f:
+            f.write(f"{old_normal}\t{new_normal or 'NORMAL'}\n")
+            f.write(f"{old_tumor}\t{new_tumor or 'TUMOR'}\n")
+
+        bt.reheader(
+            '-s', vcf_namefile,
+            '-o', output_path,
+            input_path,
+            catch_stdout=False
+        )
+
+
 
 ''' Impute tumor/normal genotypes, GT value for records '''
 def _tumor_normal_genotypes(ref, alt, info):
@@ -177,6 +211,8 @@ def main():
     output_vcf = args.output
     vcf_reader = VCF(input_vcf)
 
+    """ flag that shows that we have generic names, no need to fix """
+    generic_names = vcf_reader.samples[0] == 'NORMAL' and vcf_reader.samples[1] == 'TUMOR'
     """ 
        If NORMAL/TUMOR swap detected, correct it early
        Note that we cannot do swap correction and renaming in one go in some cases,
@@ -187,7 +223,7 @@ def main():
     """
     if _samples_swapped(vcf_reader, args.normal, args.tumor):
         vcf_swapfile = "./sampleSwap_fix.vcf.gz" if input_vcf.endswith('.gz') else "./sampleSwap_fix.vcf"
-        samples_ordered = ",".join([vcf_reader.samples[1],vcf_reader.samples[0]])
+        samples_ordered = ",".join([vcf_reader.samples[1], vcf_reader.samples[0]])
         bt.view(
             '-s', samples_ordered,
             '-Oz' if input_vcf.endswith('gz') else '-Ov',
@@ -282,6 +318,20 @@ def main():
 
     vcf_reader.close()
     vcf_writer.close()
+
+    """ Make sure we have NORMAL and TUMOR for samples when preprocessing vcf files """
+    if not generic_names and (args.normal and args.tumor):
+        fd, temp_vcf = tempfile.mkstemp(
+            suffix='.vcf',
+            dir='.'
+        )
+        os.close(fd)
+        try:
+            _rename_samples(output_vcf, temp_vcf, 'NORMAL', 'TUMOR', args.normal, args.tumor)
+            os.replace(temp_vcf, output_vcf)
+        finally:
+            if os.path.exists(temp_vcf):
+                os.remove(temp_vcf)
 
 
 if __name__ == '__main__':
