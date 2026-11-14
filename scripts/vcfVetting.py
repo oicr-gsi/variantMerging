@@ -33,17 +33,13 @@ def _samples_swapped(reader: cyvcf2.VCFReader, normalName: str, tumorName: str) 
 def _rename_samples(input_path: str,
                     output_path: str,
                     new_normal: str,
-                    new_tumor: str,
-                    old_normal='NORMAL',
-                    old_tumor='TUMOR'):
+                    new_tumor: str):
     """
 
     :param input_path: Path for the input vcf (can be vcf or vcf.gz)
     :param output_path: Path to write our output, re-headered vcf
     :param new_normal: This is what we want for normal sample
     :param new_tumor: This is what we want for tumor sample
-    :param old_normal: existing normal sample name, to be replaced by new_normal (usually NORMAL)
-    :param old_tumor: existing tumor sample name, to be replaced by new_tumor (usually TUMOR)
 
     This function will create a vcf which is essentially a copy of the input, with sample ids
     replaced by what we pass to it.
@@ -53,12 +49,12 @@ def _rename_samples(input_path: str,
     with pysam.VariantFile(input_path) as vcf:
         samples = list(vcf.header.samples)
 
-    if samples != [old_normal, old_tumor]:
+    if len(samples) != 2:
         raise ValueError(
-            f"Unexpected sample names/order in {input_path}: {samples}. "
-            f"Expected {[old_normal, old_tumor]}"
+            f"Expected exactly two samples in {input_path}, found {len(samples)}: {samples}"
         )
 
+    old_normal, old_tumor = samples
     ''' Re-header using pysam bcftools, replacing old sample ids with new ones: '''
     with tempfile.TemporaryDirectory() as tmpdir:
         vcf_namefile = f"{tmpdir}/sample_names.txt"
@@ -72,7 +68,6 @@ def _rename_samples(input_path: str,
             input_path,
             catch_stdout=False
         )
-
 
 
 ''' Impute tumor/normal genotypes, GT value for records '''
@@ -327,7 +322,7 @@ def main():
         )
         os.close(fd)
         try:
-            _rename_samples(output_vcf, temp_vcf, 'NORMAL', 'TUMOR', args.normal, args.tumor)
+            _rename_samples(output_vcf, temp_vcf, 'NORMAL', 'TUMOR')
             os.replace(temp_vcf, output_vcf)
         finally:
             if os.path.exists(temp_vcf):
