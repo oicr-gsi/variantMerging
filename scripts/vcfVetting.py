@@ -8,7 +8,7 @@ from itertools import chain
 from vcfParsing import *
 from cyvcf2 import VCF, Writer
 
-''' Check for sample swap (mutect2 - specific worng order of NORMAL and TUMOR columns '''
+''' Check for sample swap (mutect2 - specific wrong order of NORMAL and TUMOR columns '''
 def _samples_swapped(reader: cyvcf2.VCFReader, normalName: str, tumorName: str) -> bool:
     """ mutect2 - specific normal swap fix: """
     if len(reader.samples) == 2:
@@ -37,7 +37,8 @@ def _rename_samples(input_path: str, output_path: str, normalName: str, tumorNam
     bt.reheader(
         '-s', vcf_namefile,
         '-o', output_path,
-        input_path
+        input_path,
+        catch_stdout=False
     )
 
 ''' Impute tumor/normal genotypes, GT value for records '''
