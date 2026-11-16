@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.7] - 2026-11-14
+### Changed
+- PyVCF->cyvcf2 refactoring to speed up processing and reduce memory consumption
+- only scripts updated (and the module version)
+
 ## [2.5.6] - 2026-09-11
 ### Added
 - overhead parameters to gatk and picard tasks for better Java Heap RAM allocation
