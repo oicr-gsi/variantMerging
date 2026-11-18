@@ -1,12 +1,11 @@
 """
-   Module for operations on vcf files using PyVCF package
+   Module for operations on vcf files using cyvcf2 package
+   https://github.com/brentp/cyvcf2
    the goal is to reduce redundancy  - move code used by scripts for
    pre- and post-processing into one place
 
 """
-
-import vcf
-import re
+import cyvcf2
 
 def _special_character(f):
     switcher = {-1: 'A',
@@ -14,76 +13,26 @@ def _special_character(f):
                 -3: 'R'}
     return switcher[f] if f in switcher.keys() else '.'
 
-
-def generate_header(vcf_reader: vcf.Reader, reference: str):
-    header_lines = ["##fileformat=" + vcf_reader.metadata['fileformat'] + "\n"]
-    add_gt = True
-
-    for flt in vcf_reader.filters:
-        header_lines.append("##FILTER=<ID=" + vcf_reader.filters[flt].id +
-                            ",Description=\"" + vcf_reader.filters[flt].desc + "\">\n")
-    '''
-       Process FORMATs
-    '''
-    for f in vcf_reader.formats:
-        num = vcf_reader.formats[f].num
-        if vcf_reader.formats[f].num is None:
-            num = '.'
-        elif isinstance(vcf_reader.formats[f].num, int) and vcf_reader.formats[f].num < 0:
-            num = _special_character(vcf_reader.formats[f].num)
-        if vcf_reader.formats[f].id == 'GT':
-            add_gt = False
-        header_lines.append("##FORMAT=<ID=" + vcf_reader.formats[f].id +
-                            ",Number=" + str(num) + ",Type=" + vcf_reader.formats[f].type +
-                            ",Description=\"" + vcf_reader.formats[f].desc + "\">\n")
+def update_header(vcf_reader: cyvcf2.Reader, add_gt: bool):
     if add_gt:
-        header_lines.append("##FORMAT=<ID=GT,Number=1,Type=String,Description=\""
-                            "Genotype, constructed from SGT INFO via external modification\">\n")
-        header_lines.append("##FORMAT=<ID=AD,Number=.,Type=Integer,Description=\""
-                            "Allelic depths for the ref and alt alleles in the order listed\">\n")
+        vcf_reader.add_format_to_header({
+           'ID': 'GT',
+           'Description': 'Genotype, constructed from SGT INFO via external modification',
+           'Type': 'Character',
+           'Number': '1'
+        })
+        vcf_reader.add_format_to_header({
+            'ID': 'AD',
+            'Description': 'Allelic depths for the ref and alt alleles in the order listed',
+            'Type': 'Integer',
+            'Number': 'R'
+        })
+    ''' Handle negative Number instances '''
+    for field in vcf_reader.header_iter():
+        """ Process FORMAT and INFO"""
+        if field['HeaderType'] in ['FORMAT', 'INFO']:
+            if not field['Number']:
+                vcf_reader.update(field['ID'], field['Type'], '.', field['Description'])
+            elif isinstance(field['Number'], int) and field['Number'] < 0:
+                vcf_reader.update(field['ID'], field['Type'], _special_character(field['NUM']), field['Description'])
 
-    ''' 
-       Process INFO
-    '''
-    for i in vcf_reader.infos:
-        num = vcf_reader.infos[i].num
-        if vcf_reader.infos[i].num is None:
-            num = '.'
-        elif isinstance(vcf_reader.infos[i].num, int) and vcf_reader.infos[i].num < 0:
-            num = _special_character(vcf_reader.infos[i].num)
-        header_lines.append("##INFO=<ID=" + vcf_reader.infos[i].id +
-                            ",Number=" + str(num) + ",Type=" + vcf_reader.infos[i].type +
-                            ",Description=\"" + vcf_reader.infos[i].desc + "\">\n")
-
-    ''' 
-        Process contigs
-    '''
-    for c in vcf_reader.contigs:
-        if re.search('_', vcf_reader.contigs[c].id):
-            continue
-        header_lines.append("##contig=<ID=" +
-                            vcf_reader.contigs[c].id +
-                            ",length=" +
-                            str(vcf_reader.contigs[c].length) +
-                            ",assembly=" + reference + ">\n")
-
-    if isinstance(vcf_reader.samples, list) and len(vcf_reader.samples) == 2:
-        header_fields = ['CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT', 'NORMAL', 'TUMOR']
-    else:
-        header_fields = ['CHROM', 'POS', 'ID', 'REF', 'ALT', 'QUAL', 'FILTER', 'INFO', 'FORMAT', 'TUMOR']
-    header_lines.append("#" + "\t".join(header_fields) + "\n")
-    return header_lines
-
-def inject_names(header_lines: list, tumor_name: str, normal_name: str):
-    header_titles = header_lines[-1].rstrip().split("\t")
-    try:
-        if len(header_titles) >= 10 and tumor_name is not None:
-            header_titles[-1] = tumor_name
-        if len(header_titles) >= 11 and normal_name is not None:
-            header_titles[-2] = normal_name
-        parsed_headers = "\t".join(header_titles) + "\n"
-        header_lines.pop()
-        header_lines.append(parsed_headers)
-    except:
-        print("Error injecting names")
-    return header_lines

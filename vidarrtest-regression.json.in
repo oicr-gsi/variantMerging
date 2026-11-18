@@ -200,7 +200,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.3/output_metrics/workflow_test_01.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.7/output_metrics/workflow_test_01.metrics",
                 "type": "script"
             }
         ]
@@ -208,8 +208,8 @@
     {
         "arguments": {
             "variantMerging.reference": "hg19",
-            "variantMerging.tumorName": "MS_FAKE_P",
-            "variantMerging.normalName": "MS_FAKE_R",
+            "variantMerging.tumorName": "DYS_1194_Es_P_TS.sorted.filter",
+            "variantMerging.normalName": "DYS_1194_Es_R_TS.sorted.filter",
             "variantMerging.combineVariantsAll.jobMemory": null,
             "variantMerging.combineVariantsAll.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
             "variantMerging.combineVariantsAll.overhead": null,
@@ -403,7 +403,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.3/output_metrics/workflow_test_02.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.7/output_metrics/workflow_test_02.metrics",
                 "type": "script"
             }
         ]
@@ -411,8 +411,8 @@
     {
         "arguments": {
             "variantMerging.reference": "hg19",
-            "variantMerging.tumorName": "MULTI_FAKE_P",
-            "variantMerging.normalName": "MULTI_FAKE_R",
+            "variantMerging.tumorName": "DYS_1194_Es_P_TS.sorted.filter",
+            "variantMerging.normalName": "DYS_1194_Es_R_TS.sorted.filter",
             "variantMerging.priorities": ["strelka", "mutect2", "mutect"],
             "variantMerging.combineVariantsAll.jobMemory": null,
             "variantMerging.combineVariantsAll.combiningScript": "$VARMERGE_SCRIPTS_ROOT/bin/vcfCombine.py",
@@ -624,7 +624,7 @@
             {
                 "metrics_calculate": "@CHECKOUT@/tests/calculate.sh",
                 "metrics_compare": "@CHECKOUT@/tests/compare.sh",
-                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.3/output_metrics/workflow_test_03.metrics",
+                "output_metrics": "/.mounts/labs/gsi/testdata/variantMerging/2.5.7/output_metrics/workflow_test_03.metrics",
                 "type": "script"
             }
         ]
